@@ -1,0 +1,70 @@
+html, body
+{
+  font-family: 'Roboto', sans-serif;
+
+  height: 100%;
+
+  background: #ce8c21;
+  background: -moz-linear-gradient(top, #ce8c21 0%, #f1da36 100%);
+  background: -webkit-linear-gradient(top, #ce8c21 0%,#f1da36 100%);
+  background: linear-gradient(to bottom, #ce8c21 0%,#f1da36 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ce8c21', endColorstr='#f1da36',GradientType=0 );
+}
+
+h1, h2, h3, button
+{
+  text-align: center;
+  font-family: 'Black Han Sans', sans-serif;
+}
+
+
+.comic-text
+{
+    font-size: 100px;
+    color: #f1eb25;
+    text-shadow:-1px 1px #47bdbc,
+                -2px 2px #47bdbc,
+                -3px 3px #47bdbc,
+                -4px 4px #47bdbc,
+                -5px 5px #47bdbc,
+                -6px 6px #47bdbc,
+                -7px 7px #47bdbc,
+                -8px 8px #47bdbc,
+                -9px 9px #47bdbc,
+                -10px 10px #47bdbc,
+                -11px 11px #47bdbc,
+                -12px 12px #47bdbc,
+                -13px 13px #47bdbc,
+                -14px 14px #47bdbc,
+                -15px 15px #47bdbc;
+  -webkit-text-stroke: 3px black;
+}
+
+.container
+{
+  height: 100%;
+  overflow: hidden;
+}
+
+
+.content-box
+{
+    background-color: #eee;
+    padding: 20px;
+    border-radius: 20px;
+    height: 100%;
+}
+
+.btn-primary
+{
+  background-color: #f1eb25;
+  border-color: #f1eb25;
+  color: #000;
+  font-size: 30px;
+  border-radius: 50px;
+}
+
+.btn-large
+{
+  padding: 30px;
+}

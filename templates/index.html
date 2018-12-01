@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+{% block content %}
+  <!-- title container -->
+  <div style="text-align:center">
+    <span style="font-style: oblique;font-size: 20px;">THE AMAZING</span>
+    <h1 class="comic-text">COMIC GAME</h1>
+  </div>
+
+  <!-- main content -->
+  <div class="content-box row">
+    <div class="col-sm-12">
+      <a href="javascript:void(0);" onclick="alert('Create new');"><button type="button" class="btn btn-primary btn-large">Create New Game</button></a>
+    </div>
+    <div class="col-sm-12">
+      <a href="javascript:void(0);" onclick="alert('Join existing');"><button type="button" class="btn btn-primary btn-large">Join Existing Game</button></a>
+    </div>
+  </div>
+{% endblock %}
