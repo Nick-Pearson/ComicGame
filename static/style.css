@@ -11,7 +11,7 @@ html, body
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ce8c21', endColorstr='#f1da36',GradientType=0 );
 }
 
-h1, h2, h3, button
+h1, h2, h3, button, .form-large
 {
   text-align: center;
   font-family: 'Black Han Sans', sans-serif;
@@ -53,6 +53,7 @@ h1, h2, h3, button
     padding: 20px;
     border-radius: 20px;
     height: 100%;
+    text-align: center;
 }
 
 .btn-primary
@@ -64,7 +65,23 @@ h1, h2, h3, button
   border-radius: 50px;
 }
 
+.btn-primary:hover
+{
+  background-color: #47bdbc;
+  border: 2px solid #000;
+  color: #fff;
+  font-style: oblique;
+  -webkit-text-stroke: 1px black;
+}
+
 .btn-large
 {
   padding: 30px;
+}
+
+.form-large
+{
+  font-size: 40px;
+  padding: 40px;
+  margin: 10px 0px 10px 0px;
 }

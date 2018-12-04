@@ -7,12 +7,31 @@
   </div>
 
   <!-- main content -->
-  <div class="content-box row">
-    <div class="col-sm-12">
-      <a href="javascript:void(0);" onclick="alert('Create new');"><button type="button" class="btn btn-primary btn-large">Create New Game</button></a>
+  <div class="content-box">
+    <div class="row">
+      <div class="col-sm-4">
+        <h3>Create Panels</h3>
+      </div>
+      <div class="col-sm-4">
+        <h3>Build Comics</h3>
+      </div>
+      <div class="col-sm-4">
+        <h3>Challenge Friends</h3>
+      </div>
     </div>
-    <div class="col-sm-12">
-      <a href="javascript:void(0);" onclick="alert('Join existing');"><button type="button" class="btn btn-primary btn-large">Join Existing Game</button></a>
+    <hr/>
+    <div class="row">
+      <div class="col-sm-6">
+        <p>Click this button on your TV or laptop to start a new game</p>
+        <a href="javascript:void(0);" onclick="OnNewGameClicked();"><button type="button" class="btn btn-primary btn-large">Create New Game</button></a>
+      </div>
+      <div class="col-sm-6">
+        <p>Enter this room code on your phone to join a game</p>
+        <input type="text" class="form-control form-large" id="roomCode" placeholder="Room Code" style="text-transform:uppercase;" maxlength="4">
+        <a href="javascript:void(0);" onclick="JoinExistingGameClicked();"><button type="button" class="btn btn-primary btn-large">Join Existing Game</button></a>
+      </div>
     </div>
   </div>
+
+  <script type="text/javascript" src="static/scripts/index.js"></script>
 {% endblock %}
