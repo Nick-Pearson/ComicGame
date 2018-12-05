@@ -21,13 +21,14 @@
     </div>
     <hr/>
     <div class="row">
-      <div class="col-sm-6">
+      <div class="col-sm-6 d-none d-sm-block">
         <p>Click this button on your TV or laptop to start a new game</p>
         <a href="javascript:void(0);" onclick="OnNewGameClicked();"><button type="button" class="btn btn-primary btn-large">Create New Game</button></a>
       </div>
       <div class="col-sm-6">
-        <p>Enter this room code on your phone to join a game</p>
-        <input type="text" class="form-control form-large" id="roomCode" placeholder="Room Code" style="text-transform:uppercase;" maxlength="4">
+        <p>Enter the game code on your phone to join in</p>
+        <input type="text" class="form-control form-large" id="gameCode" placeholder="Game Code" style="text-transform:uppercase;" maxlength="4">
+        <input type="text" class="form-control form-large" id="playerName" placeholder="Player Name" style="text-transform:uppercase;" maxlength="24">
         <a href="javascript:void(0);" onclick="JoinExistingGameClicked();"><button type="button" class="btn btn-primary btn-large">Join Existing Game</button></a>
       </div>
     </div>

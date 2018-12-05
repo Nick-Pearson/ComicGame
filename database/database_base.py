@@ -9,6 +9,14 @@ class DatabaseBase:
     def user_exists(this, user_id):
         raise NotImplementedError("Method not implemented");
 
+    def add_user_record(this, user_id, ip_addr):
+        raise NotImplementedError("Method not implemented");
+
+    def game_exists(this, game_id):
+        raise NotImplementedError("Method not implemented");
+
+    def add_game_record(this, game_id, host_user):
+        raise NotImplementedError("Method not implemented");
 
     ######################
     # Methods
@@ -20,16 +28,38 @@ class DatabaseBase:
         while(this.user_exists(user_id)):
             user_id = this.generate_user_id();
 
+        this.add_user_record(user_id, ip_addr);
+
         return user_id;
+
+    def create_game(this, user_id):
+        game_id = this.generate_game_id();
+
+        while(this.game_exists(game_id)):
+            game_id = this.generate_game_id();
+
+        this.add_game_record(game_id, user_id);
+
+        return game_id;
+
 
     def generate_user_id(this):
         out_id = '';
         for i in range(0,5):
             choice = random.randint(0, 31)
-            
+
             if choice < 11:
                 out_id += chr(ord('0') + choice);
             else:
                 out_id += chr(ord('a') + choice - 11);
+
+        return out_id;
+
+    def generate_game_id(this):
+        out_id = '';
+
+        for i in range(0,4):
+            choice = random.randint(0, 26)
+            out_id += chr(ord('a') + choice);
 
         return out_id;

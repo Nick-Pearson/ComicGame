@@ -1,14 +1,18 @@
-html, body
+html
+{
+    min-height: 100%;
+}
+
+body
 {
   font-family: 'Roboto', sans-serif;
 
-  height: 100%;
+  min-height: 100%;
 
   background: #ce8c21;
   background: -moz-linear-gradient(top, #ce8c21 0%, #f1da36 100%);
   background: -webkit-linear-gradient(top, #ce8c21 0%,#f1da36 100%);
   background: linear-gradient(to bottom, #ce8c21 0%,#f1da36 100%);
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ce8c21', endColorstr='#f1da36',GradientType=0 );
 }
 
 h1, h2, h3, button, .form-large
@@ -42,7 +46,7 @@ h1, h2, h3, button, .form-large
 
 .container
 {
-  height: 100%;
+  min-height: 100%;
   overflow: hidden;
 }
 
@@ -83,5 +87,35 @@ h1, h2, h3, button, .form-large
 {
   font-size: 40px;
   padding: 40px;
-  margin: 10px 0px 10px 0px;
+  margin: 10px 0 10px 0;
+}
+
+.game-container
+{
+    min-height: 100%;
+}
+
+
+.loading-text:after
+{
+  overflow: hidden;
+  display: inline-block;
+  vertical-align: bottom;
+  -webkit-animation: ellipsis steps(4,end) 2000ms infinite;
+  animation: ellipsis steps(4,end) 2000ms infinite;
+  content: "."; /* ascii code for the ellipsis character */
+}
+
+@keyframes ellipsis
+{
+  0% { content:  ".  "; }
+  50% { content: ".. "; }
+  70% { content: "..."; }
+}
+
+@-webkit-keyframes ellipsis
+{
+  0% { content:  ".  "; }
+  50% { content: ".. "; }
+  70% { content: "..."; }
 }
