@@ -29,7 +29,7 @@ def create_game():
 
     return jsonify({"game_id": "effg"});
 
-@app.route("/api/game/<gamd_id>", methods = ["GET"])
+@app.route("/api/game/<game_id>", methods = ["GET"])
 def get_game_info(game_id):
     return jsonify({"game_id": game_id, "players": ["Simon", "Rick", "Gerry", "Chris", "Dave"], "is_host": True});
 
