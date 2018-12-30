@@ -95,6 +95,27 @@ h1, h2, h3, button, .form-large
     min-height: 100%;
 }
 
+.room-code
+{
+  text-transform: uppercase;
+}
+
+.overlay-tab {
+	width: 100px;
+	background-color: #eee;
+	position: absolute;
+	right: 50px;
+	padding: 5px;
+	border-radius: 0px 0px 10px 10px;
+	box-shadow: 2px 2px 2px #333;
+	text-align: center;
+}
+
+.countdown {
+	text-align: center;
+	font-family: 'Black Han Sans', sans-serif;
+	font-size: 5em;
+}
 
 .loading-text:after
 {

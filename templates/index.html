@@ -27,12 +27,14 @@
       </div>
       <div class="col-sm-6">
         <p>Enter the game code on your phone to join in</p>
-        <input type="text" class="form-control form-large" id="gameCode" placeholder="Game Code" style="text-transform:uppercase;" maxlength="4">
+        <input type="text" class="form-control form-large game-code" id="gameCode" placeholder="Game Code" maxlength="4">
         <input type="text" class="form-control form-large" id="playerName" placeholder="Player Name" style="text-transform:uppercase;" maxlength="24">
         <a href="javascript:void(0);" onclick="JoinExistingGameClicked();"><button type="button" class="btn btn-primary btn-large">Join Existing Game</button></a>
       </div>
     </div>
   </div>
+{% endblock %}
 
+{% block scripts %}
   <script type="text/javascript" src="static/scripts/index.js"></script>
 {% endblock %}

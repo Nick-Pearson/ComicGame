@@ -1,10 +1,46 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<div class="game-container">
-<h1 style="margin-top:25%" class="loading-text">Loading</h1>
+{% raw %}
+<div id="game">
+  <div v-if="gameInfo == undefined">
+    <h1 style="margin-top:25%" class="loading-text">Loading</h1>
+  </div>
+  <div v-if="gameInfo != undefined">
+    <div class="overlay-tab" v-if="gameInfo.is_host ">
+      <p>Room Code</p>
+      <h2 class="room-code">{{ gameInfo.game_id }}</h2>
+    </div>
+
+    <div class="game-content">
+      <div v-if="gameInfo.state == GameState.STARTING">
+        <h2>Waiting for players to join</h2>
+
+        <player-entry
+          v-for="player in gameInfo.players"
+          v-bind:player="player"
+          v-bind:show_score="false"
+          v-bind:key="player.id"></player-entry>
+
+        <a v-if="gameInfo.is_host && gameInfo.players.length > 1" href="javascript:void(0);" onclick="StartGameClicked();"><button type="button" class="btn btn-primary btn-large">Start Game</button></a>
+      </div>
+      <div v-if="gameInfo.state == GameState.DRAWING">
+        <h2>Draw some panels!</h2>
+
+        <countdown-clock v-bind:end_time="drawEndTime"></countdown-clock>
+      </div>
+    </div>
+
+  </div>
 </div>
 <!-- comicgame.co.uk -->
 
+
+{% endraw %}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 <script type="text/javascript" src="static/scripts/game.js"></script>
 {% endblock %}

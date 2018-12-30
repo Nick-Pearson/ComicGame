@@ -1,5 +1,16 @@
 // Shared frontend code
 
+/*
+STARTING      = Waiting for players to join the game
+DRAWING       = Creating panels
+DISTRIBUTING  = Internal state: finishing up image upload from clients, randomising the panels and distributing them to players
+CREATING      = players are making strips
+GATHERING     = Internal state: finishing upload of any created strips
+RATING        = Quick fire rating strips off against eachother
+SCOREBOARD    = Game is over, display scoreboard. The game remains in this state forevermore
+*/
+var GameState = Object.freeze({"STARTING": 0, "DRAWING": 1, "DISTRIBUTING": 2, "CREATING": 3, "GATHERING": 4, "RATING": 5, "SCOREBOARD": 6});
+
 //closure JS magic so it works in NodeJS and browsers
 (function(e){
 
@@ -37,7 +48,7 @@
 
    e.GetGameInfo = function(gameID, oncompleted)
    {
-     if(!IsValidGameID(gameID)) return;
+     if(!e.IsValidGameID(gameID)) return;
 
      let req = new XMLHttpRequest();
      req.onreadystatechange = function() {
@@ -47,7 +58,7 @@
        }
      };
 
-     req.open("GET", GetAPIRoot() + "/game/" + gameID, true);
+     req.open("GET", e.GetAPIRoot() + "/game/" + gameID, true);
      req.send();
    }
 
