@@ -18,6 +18,15 @@ class DatabaseBase:
     def add_game_record(this, game_id, host_user):
         raise NotImplementedError("Method not implemented");
 
+    def query_game_for_user(this, game_id, user_id):
+        raise NotImplementedError("Method not implemented");
+
+    def add_user_to_game(this, game_id, user_id, name):
+        raise NotImplementedError("Method not implemented");
+
+    def set_game_state(this, game_id, new_state, end_time):
+        raise NotImplementedError("Method not implemented");
+
     ######################
     # Methods
     ######################
@@ -40,6 +49,8 @@ class DatabaseBase:
 
         this.add_game_record(game_id, user_id);
 
+        # Update the user record with the new game id
+
         return game_id;
 
 
@@ -59,7 +70,7 @@ class DatabaseBase:
         out_id = '';
 
         for i in range(0,4):
-            choice = random.randint(0, 26)
+            choice = random.randint(0, 25)
             out_id += chr(ord('a') + choice);
 
         return out_id;

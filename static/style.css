@@ -21,6 +21,11 @@ h1, h2, h3, button, .form-large
   font-family: 'Black Han Sans', sans-serif;
 }
 
+canvas
+{
+  background-color: #fff;
+  border: thin solid #000;
+}
 
 .comic-text
 {
@@ -101,20 +106,44 @@ h1, h2, h3, button, .form-large
 }
 
 .overlay-tab {
-	width: 100px;
 	background-color: #eee;
 	position: absolute;
-	right: 50px;
+	right: 5%;
+  top: 0;
 	padding: 5px;
 	border-radius: 0px 0px 10px 10px;
 	box-shadow: 2px 2px 2px #333;
 	text-align: center;
+  z-index: 100;
 }
 
 .countdown {
 	text-align: center;
 	font-family: 'Black Han Sans', sans-serif;
 	font-size: 5em;
+}
+
+.specator-banner {
+	text-align: center;
+	height: 30px;
+	background-color: #228617;
+	color: #eee;
+	width: 100%;
+	position: absolute;
+	left: 0;
+  box-shadow: 0px 0px 10px #000;
+}
+
+.colour-picker {
+	border-radius: 8px;
+	padding: 8px;
+	background-color: #f00;
+	margin: 3px;
+	width: 16px;
+  border: thin solid transparent;
+}
+.colour-picker.selected {
+  border: thin solid #fff;
 }
 
 .loading-text:after

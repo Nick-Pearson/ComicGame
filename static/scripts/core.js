@@ -54,7 +54,7 @@ var GameState = Object.freeze({"STARTING": 0, "DRAWING": 1, "DISTRIBUTING": 2, "
      req.onreadystatechange = function() {
        if(this.readyState == 4)
        {
-         oncompleted(JSON.parse(this.responseText));
+         oncompleted(JSON.parse(this.responseText), this.status == 200);
        }
      };
 
