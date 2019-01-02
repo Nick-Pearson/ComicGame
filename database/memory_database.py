@@ -6,6 +6,7 @@ class Database(DatabaseBase):
     def __init__(this):
         this.__users = {};
         this.__games = {};
+        this.__images = {};
 
     def user_exists(this, user_id):
         if user_id in this.__users:
@@ -23,7 +24,7 @@ class Database(DatabaseBase):
         return False;
 
     def add_game_record(this, game_id, host_user):
-        this.__games[game_id] = {"host": host_user, "state":0, "players":[], "round_end": 0};
+        this.__games[game_id] = {"host": host_user, "state":0, "players":[], "panels":[], "round_end": 0};
 
     def query_game_for_user(this, game_id, user_id):
         if game_id not in this.__games:
@@ -74,3 +75,21 @@ class Database(DatabaseBase):
             this.__games[game_id]["round_end"] = end_time;
 
         return True;
+
+    def add_panel_to_game(this, game_id, user_id):
+        if game_id not in this.__games:
+            return None;
+
+        image_id = this.create_image(user_id);
+
+        this.__games[game_id]["panels"].append(image_id);
+        return image_id;
+
+    def add_image_record(this, image_id, created_by):
+        this.__images[image_id] = created_by;
+
+    def image_exists(this, image_id):
+        if image_id in this.__images:
+            return True;
+
+        return False;

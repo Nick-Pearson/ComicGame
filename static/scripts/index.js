@@ -37,7 +37,7 @@ function JoinExistingGameClicked()
     }
   };
 
-  xhttp.open("POST", "/api/game/join/" + encodeURIComponent(code.value), true);
+  xhttp.open("POST", "/api/game/" + encodeURIComponent(code.value) + "/join", true);
   xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
   xhttp.send("name=" + encodeURIComponent(name.value));
 }

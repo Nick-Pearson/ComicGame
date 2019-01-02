@@ -27,6 +27,12 @@ class DatabaseBase:
     def set_game_state(this, game_id, new_state, end_time):
         raise NotImplementedError("Method not implemented");
 
+    def add_panel_to_game(this, game_id, user_id):
+        raise NotImplementedError("Method not implemented");
+
+    def image_exists(this, image_id):
+        raise NotImplementedError("Method not implemented");
+
     ######################
     # Methods
     ######################
@@ -42,10 +48,10 @@ class DatabaseBase:
         return user_id;
 
     def create_game(this, user_id):
-        game_id = this.generate_game_id();
+        game_id = this.generate_id(4);
 
         while(this.game_exists(game_id)):
-            game_id = this.generate_game_id();
+            game_id = this.generate_id(4);
 
         this.add_game_record(game_id, user_id);
 
@@ -53,6 +59,15 @@ class DatabaseBase:
 
         return game_id;
 
+    def create_image(this, created_by):
+        image_id = this.generate_id(6);
+
+        while(this.image_exists(image_id)):
+            image_id = this.generate_id(6);
+
+        this.add_image_record(image_id, created_by);
+
+        return image_id;
 
     def generate_user_id(this):
         out_id = '';
@@ -66,10 +81,10 @@ class DatabaseBase:
 
         return out_id;
 
-    def generate_game_id(this):
+    def generate_id(this, size):
         out_id = '';
 
-        for i in range(0,4):
+        for i in range(0,size):
             choice = random.randint(0, 25)
             out_id += chr(ord('a') + choice);
 

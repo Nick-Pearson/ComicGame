@@ -1,6 +1,7 @@
 import unittest
 import re
 from database import Database
+from imagestore import ImageStore
 
 class TestDatabase(unittest.TestCase):
     def setUp(this):
@@ -25,22 +26,23 @@ class TestDatabase(unittest.TestCase):
 
     def test_gid_size(this):
         for i in range(0, 30):
-            this.assertEqual(len(this.db.generate_game_id()), 4);
+            this.assertEqual(len(this.db.generate_id(4)), 4);
 
     def test_gid_collision(this):
         for i in range(0, 30):
-            this.assertNotEqual(this.db.generate_game_id(), this.db.generate_game_id());
+            this.assertNotEqual(this.db.generate_id(4), this.db.generate_id(4));
 
         gid_one = this.db.create_game('erwt4');
         gid_two = this.db.create_game('gty86');
         this.assertNotEqual(gid_one, gid_two);
 
     def test_gid_valid(this):
-        prog = re.compile('^[a-z][a-z][a-z][a-z]$');
-        for i in range(0, 500):
-            gid = this.db.generate_game_id()
-            result = prog.match(gid);
-            this.assertEqual("" if result == None else result.string, gid);
+        for j in [4, 10, 7, 100, 6]:
+            prog = re.compile('^' + ('[a-z]' * j) + '$');
+            for i in range(0, 500):
+                gid = this.db.generate_id(j);
+                result = prog.match(gid);
+                this.assertEqual("" if result == None else result.string, gid);
 
     def test_game_create(this):
         gid = this.db.create_game('3heuo');
@@ -106,6 +108,46 @@ class TestDatabase(unittest.TestCase):
         this.assertEqual(len(record["players"]), 1);
         this.assertFalse(record["is_host"]);
         this.assertTrue(record["is_spectator"]);
+
+    def test_create_image(this):
+        uid = this.db.create_user('127.0.0.15');
+
+        for i in range(0, 10):
+            iid = this.db.create_image(uid);
+            this.assertTrue(this.db.image_exists(iid));
+
+    def test_add_panel(this):
+        uid = this.db.create_user('127.0.0.16');
+        gid = this.db.create_game(uid);
+
+        iid = this.db.add_panel_to_game(gid, uid);
+        this.assertTrue(this.db.image_exists(iid));
+
+        # TODO: Assert the image is added to the game
+
+class TestImageStore(unittest.TestCase):
+    def setUp(this):
+        this.ims = ImageStore();
+
+    def test_image_store(this):
+        im = 'iVBORw0KGgoAAAANSUhEUgAAAHAAAACgCAYAAADU3uhkAAAAXElEQVR4nO3BMQEAAADCoPVPbQsvoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOBvGK8AAQqLoVoAAAAASUVORK5CYII=';
+        imid = '0192';
+
+        this.ims.store_image(imid, im);
+
+        this.assertTrue(this.ims.has_image(imid));
+
+
+
+
+
+
+
+
+class TestServer(unittest.TestCase):
+    def setUp():
+        print("setup");
+
 
 
 if __name__ == '__main__':

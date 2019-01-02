@@ -1,5 +1,6 @@
 from flask import *
 from database import Database
+from imagestore import ImageStore
 import jwt
 import settings
 import time
@@ -19,6 +20,7 @@ DRAW_TIME = 60 * 3.5
 app = Flask(__name__)
 
 db = Database();
+imagestore = ImageStore();
 
 @app.route('/', methods = ['GET'])
 def index():
@@ -36,6 +38,17 @@ def game():
     request_data = parse_request_data();
 
     res.set_cookie("cg_data", jwt.encode(request_data, settings.JWT_KEY, algorithm='HS256'), 60 * 60 * 24 * 365);
+    return res;
+
+@app.route('/image/<image_id>', methods = ['GET'])
+def get_image(image_id):
+    if imagestore.has_image(image_id):
+        res = make_response(imagestore.get_image(image_id));
+        res.headers.set("content-type", "image/png");
+    else:
+        res = make_response(jsonify({"error": "Image not found"}));
+        res.status_code = 404;
+
     return res;
 
 @app.route('/api/game', methods = ["POST"])
@@ -69,7 +82,7 @@ def get_game_info(game_id):
 
     return res
 
-@app.route('/api/game/start/<game_id>', methods = ["POST"])
+@app.route('/api/game/<game_id>/start', methods = ["POST"])
 def start_game(game_id):
     # TODO:
     # If the user is not hoting a game
@@ -94,7 +107,7 @@ def start_game(game_id):
 
     return res
 
-@app.route('/api/game/join/<game_id>', methods = ["POST"])
+@app.route('/api/game/<game_id>/join', methods = ["POST"])
 def join_game(game_id):
     game_id = game_id.lower();
     request_data = parse_request_data();
@@ -111,6 +124,25 @@ def join_game(game_id):
         res.status_code = 404;
 
     res.set_cookie("cg_data", jwt.encode(request_data, settings.JWT_KEY, algorithm='HS256'), 60 * 60 * 24 * 365);
+
+    return res
+
+@app.route('/api/game/<game_id>/panels', methods = ["POST"])
+def add_panel(game_id):
+    game_id = game_id.lower();
+    request_data = parse_request_data();
+
+    image_id = db.add_panel_to_game(game_id, request_data["user_id"]);
+    
+    if image_id is not None:
+        parts = request.data.split(',', 1);
+        b64String = parts[len(parts)-1];
+
+        imagestore.store_image(image_id, b64String);
+        res = make_response(jsonify({"success":True, "game_id": game_id}));
+    else:
+        res = make_response(jsonify({"error":"Game not found"}));
+        res.status_code = 404;
 
     return res
 

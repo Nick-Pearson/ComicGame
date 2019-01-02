@@ -53,39 +53,42 @@ Vue.component('countdown-clock', {
 Vue.component("colour-picker", {
   props: {
     "colour": String,
-    "selected": {type:Boolean, default:false}
-  },
-  data: function() {
-    return {
-      isSelected: this.selected
-    };
+    "selected": {type:Boolean, default:false},
+    "id": String
   },
   methods: {
     onclick: function(e) {
-      if(this.isSelected)
+      if(this.selected)
       {
         return;
       }
 
-      this.$emit("clicked", this.colour);
-      this.isSelected = true;
+      this.$emit("clicked", this.colour, this.id);
     }
   },
-  template: `<div class="colour-picker" v-on:mousedown="onclick" v-bind:class="{ selected: isSelected }" v-bind:style="{ 'background-color': colour }"></div>`
+  template: `<div class="colour-picker" v-on:mousedown="onclick" v-bind:class="{ selected: selected }" v-bind:style="{ 'background-color': colour }"></div>`
 });
 
 Vue.component("panel-creator", {
   props: [],
   mounted: function() {
-    this.context = this.$refs.canvas.getContext("2d");
+    let canvas = this.$refs.canvas;
+    this.context = canvas.getContext("2d");
     this.context.lineWidth = 20;
     this.context.lineCap = "round";
+
+    this.context.beginPath();
+    this.context.rect(0, 0, canvas.width, canvas.height);
+    this.context.fillStyle = "#fff";
+    this.context.fill();
+    this.context.beginPath();
   },
   data: function() {
     return {
       context: undefined,
       penDown: false,
-      touchdata: {}
+      touchdata: {},
+      curTool: "0"
     }
   },
   methods: {
@@ -114,14 +117,12 @@ Vue.component("panel-creator", {
     touchstart: function(event) {
       for(let i = 0; i < event.changedTouches.length; i++)
       {
-        console.log("Touch " + event.changedTouches[i].identifier + " start!");
         this.touchdata[event.changedTouches[i].identifier] = {x: event.changedTouches[i].pageX, y: event.changedTouches[i].pageY};
       }
     },
     touchend: function(event) {
       for(let i = 0; i < event.changedTouches.length; i++)
       {
-        console.log("Touch " + event.changedTouches[i].identifier + " end");
         delete this.touchdata[event.changedTouches[i].identifier];
       }
     },
@@ -146,20 +147,40 @@ Vue.component("panel-creator", {
         this.touchdata[event.touches[i].identifier] = {x: event.touches[i].pageX, y: event.touches[i].pageY};
       }
     },
-    changecolour: function(colour) {
+    changecolour: function(colour, id) {
       this.context.strokeStyle = colour;
       this.context.beginPath();
+
+      this.$refs.toolbar
+      this.curTool = id;
+    },
+    submitimage: function(colour) {
+      let canvas = this.$refs.canvas;
+      let data = canvas.toDataURL();
+
+      let req = new XMLHttpRequest();
+      req.onreadystatechange = function() {
+        if(this.readyState == 4)
+        {
+          console.log("got " + this.status);
+        }
+      };
+
+      req.open("POST", GetAPIRoot() + "/game/" + encodeURIComponent(GameID) + "/panels", true);
+      req.setRequestHeader("Content-type", "data:image/png;base64");
+      req.send(data);
     }
   },
   template: `<div class="row">
-              <div class="left-toolbar col-sm-1">
-                <colour-picker selected colour="#000" v-on:clicked="changecolour"></colour-picker>
-                <colour-picker colour="#f00" v-on:clicked="changecolour"></colour-picker>
-                <colour-picker colour="#0f0" v-on:clicked="changecolour"></colour-picker>
-                <colour-picker colour="#00f" v-on:clicked="changecolour"></colour-picker>
+              <div class="left-toolbar col-sm-1" ref="toolbar">
+                <colour-picker v-bind:selected="curTool==0" id=0 colour="#000" v-on:clicked="changecolour"></colour-picker>
+                <colour-picker v-bind:selected="curTool==1" id=1 colour="#f00" v-on:clicked="changecolour"></colour-picker>
+                <colour-picker v-bind:selected="curTool==2" id=2 colour="#0f0" v-on:clicked="changecolour"></colour-picker>
+                <colour-picker v-bind:selected="curTool==3" id=3 colour="#00f" v-on:clicked="changecolour"></colour-picker>
               </div>
               <div class="col-sm-11">
                 <canvas v-on:mousedown="mousedown" v-on:mouseup="mouseup" v-on:mousemove="mousemove" v-on:touchstart="touchstart" v-on:touchend="touchend" v-on:touchmove="touchmove" ref="canvas" width="1120" height="1600" style="max-height:90%; max-width: 100%"></canvas>
+                <a  href="javascript:void(0);" v-on:mousedown="submitimage"><button type="button" class="btn btn-primary">Done</button></a>
               </div>
             </div>`
 });
@@ -213,7 +234,7 @@ function StartGameClicked()
     }
   };
 
-  req.open("POST", GetAPIRoot() + "/game/start/" + encodeURIComponent(GameID), true);
+  req.open("POST", GetAPIRoot() + "/game/" + encodeURIComponent(GameID) + "/start", true);
   req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
   req.send("gameID=" + encodeURIComponent(GameID));
 }
