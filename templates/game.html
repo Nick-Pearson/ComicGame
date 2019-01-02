@@ -37,6 +37,19 @@
           <panel-creator></panel-creator>
         </div>
       </div>
+      <div v-if="gameInfo.state == GameState.DISTRIBUTING">
+        <h2>Great work!</h2>
+        <p>Now let's see what you can make with those panels</p>
+      </div>
+      <div v-if="gameInfo.state == GameState.CREATING">
+        <div v-if="gameInfo.is_host || gameInfo.is_spectator">
+          <h2>Make some comics!</h2>
+          <countdown-clock v-bind:end_time="gameInfo.round_end"></countdown-clock>
+        </div>
+        <div v-else>
+          <countdown-clock class="overlay-tab" style="font-size:2rem;" v-bind:end_time="gameInfo.round_end"></countdown-clock>
+        </div>
+      </div>
     </div>
 
   </div>
@@ -48,5 +61,6 @@
 
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
 <script type="text/javascript" src="static/scripts/game.js"></script>
 {% endblock %}

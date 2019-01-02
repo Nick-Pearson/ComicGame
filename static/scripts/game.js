@@ -215,6 +215,8 @@ function OnPageLoad()
     }
 
     app.gameInfo = info;
+
+    SubscribeToWebsocket();
   });
 }
 
@@ -237,4 +239,32 @@ function StartGameClicked()
   req.open("POST", GetAPIRoot() + "/game/" + encodeURIComponent(GameID) + "/start", true);
   req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
   req.send("gameID=" + encodeURIComponent(GameID));
+}
+
+function SubscribeToWebsocket()
+{
+  let ws = io.connect('http://' + document.domain + ':' + location.port);
+  ws.on('connect', function() {
+      console.log('Websocket connected!');
+
+      ws.emit('subscribe', {"game_id": GameID});
+  });
+
+  // message handler for the 'join_room' channel
+  ws.on('update', function(data) {
+    let keys = Object.keys(data);
+    keys.forEach(function(key) {
+      app.gameInfo[key] = data[key];
+    });
+  });
+
+  ws.on('new_player', function(player) {
+    app.gameInfo.players.push(player);
+  });
+}
+
+function OnSocketMessage(event)
+{
+  console.log("Recieved:");
+  console.log(event);
 }

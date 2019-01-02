@@ -1,9 +1,12 @@
 from flask import *
+from flask_socketio import SocketIO, join_room, leave_room, emit, send
 from database import Database
 from imagestore import ImageStore
 import jwt
 import settings
+
 import time
+from threading import Timer
 
 #enum of states
 class GameState:
@@ -16,6 +19,8 @@ class GameState:
     SCOREBOARD = 6 # Game is over, display scoreboard. The game remains in this state forevermore
 
 DRAW_TIME = 60 * 3.5
+GRACE_PERIOD = 10
+CREATE_TIME = 60 * 3.5
 
 app = Flask(__name__)
 
@@ -100,12 +105,38 @@ def start_game(game_id):
         if record["state"] == GameState.STARTING:
             record["state"] = GameState.DRAWING;
             db.set_game_state(game_id, record["state"], end_time);
+            t = Timer(DRAW_TIME, draw_time_compete, [game_id]);
+            t.start();
 
         res = make_response(jsonify({"success": True, "game_id": game_id, "state": record["state"], "end_time": end_time}));
+        emit('update', {'state': record["state"], 'round_end': end_time}, room=game_id, namespace='/');
 
     res.set_cookie("cg_data", jwt.encode(request_data, settings.JWT_KEY, algorithm='HS256'), 60 * 60 * 24 * 365);
 
     return res
+
+def draw_time_compete(game_id):
+    with app.app_context():
+        db.set_game_state(game_id, GameState.DISTRIBUTING, 0);
+        emit('update', {'state': GameState.DISTRIBUTING}, room=game_id, namespace='/');
+
+        t = Timer(GRACE_PERIOD, start_create_state, [game_id]);
+        t.start();
+
+def start_create_state(game_id):
+    with app.app_context():
+        end_time = int(time.time() + CREATE_TIME);
+
+        db.set_game_state(game_id, GameState.CREATING, end_time);
+        emit('update', {'state': GameState.CREATING, "round_end": end_time}, room=game_id, namespace='/');
+
+        t = Timer(CREATE_TIME, create_time_compete, [game_id]);
+        t.start();
+
+def create_time_compete(game_id):
+    with app.app_context():
+        db.set_game_state(game_id, GameState.GATHERING, 0);
+        emit('update', {'state': GameState.GATHERING}, room=game_id, namespace='/');
 
 @app.route('/api/game/<game_id>/join', methods = ["POST"])
 def join_game(game_id):
@@ -119,6 +150,8 @@ def join_game(game_id):
 
     if db.add_user_to_game(game_id, request_data["user_id"], request.form["name"]):
         res = make_response(jsonify({"success":True, "game_id": game_id}));
+
+        emit('new_player', {'id': request_data["user_id"], 'name': request.form["name"], 'score': 0}, room=game_id, namespace='/');
     else:
         res = make_response(jsonify({"error":"Game not found"}));
         res.status_code = 404;
@@ -133,7 +166,7 @@ def add_panel(game_id):
     request_data = parse_request_data();
 
     image_id = db.add_panel_to_game(game_id, request_data["user_id"]);
-    
+
     if image_id is not None:
         parts = request.data.split(',', 1);
         b64String = parts[len(parts)-1];
@@ -161,9 +194,29 @@ def parse_request_data():
 
     return data;
 
-if __name__ == "__main__":
-    from gevent import pywsgi
-    from geventwebsocket.handler import WebSocketHandler
+socketio = SocketIO(app)
 
-    server = pywsgi.WSGIServer(('0.0.0.0', 5000), app, handler_class=WebSocketHandler);
-    server.serve_forever();
+@socketio.on('connect', namespace='/')
+def test_connect():
+    print('Client connected')
+    emit('my response', {'data': 'Connected'})
+
+@socketio.on('disconnect', namespace='/')
+def test_disconnect():
+    print('Client disconnected')
+
+@socketio.on('subscribe')
+def on_join(data):
+    room = data['game_id']
+    join_room(room)
+    print("New subscriber for game " + room);
+
+@socketio.on('unsubscribe')
+def on_leave(data):
+    room = data['game_id']
+    leave_room(room)
+    print("Subscriber gone for game " + room);
+
+if __name__ == "__main__":
+    print("Starting server...");
+    socketio.run(app, host="0.0.0.0")

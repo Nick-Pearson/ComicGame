@@ -1,11 +1,12 @@
 language: python
 python:
   - "2.7"
-  - "3.3"
-  - "3.6"
 node_js:
 - '8'
 
+
+services:
+  - docker
 
 install:
   - pip install -r requirements.txt
@@ -15,3 +16,8 @@ install:
 script:
   - python test.py
   - mocha test.js --reporter dot
+
+deploy:
+  - docker build -t nickpearson/comicgame .
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  - docker push nickpearson/comicgame:latest
