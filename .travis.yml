@@ -18,6 +18,10 @@ script:
   - mocha test.js --reporter dot
 
 deploy:
+  provider: script
+  script:
   - docker build -t nickpearson/comicgame .
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
   - docker push nickpearson/comicgame:latest
+  on:
+    branch: master
