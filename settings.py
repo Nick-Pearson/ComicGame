@@ -10,6 +10,6 @@ else:
     raise RuntimeError("Missing JWT secret");
 
 if "PORT" in __settings:
-    PORT = __settings["PORT"];
+    PORT = int(__settings["PORT"]);
 else:
     PORT = 5000

@@ -219,4 +219,4 @@ def on_leave(data):
 
 if __name__ == "__main__":
     print("Starting server...");
-    socketio.run(app, host="0.0.0.0")
+    socketio.run(app, host="0.0.0.0", port=settings.PORT)
