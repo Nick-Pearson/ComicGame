@@ -218,5 +218,5 @@ def on_leave(data):
     print("Subscriber gone for game " + room);
 
 if __name__ == "__main__":
-    print("Starting server...");
+    print("Starting server on port " + str(settings.PORT));
     socketio.run(app, host="0.0.0.0", port=settings.PORT)
