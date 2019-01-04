@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: comicgame-ns
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: comicgame
+  namespace: comicgame-ns
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: comicgame-app
+  template:
+    metadata:
+      labels:
+        app: comicgame-app
+    spec:
+      containers:
+      - name: comicgame
+        image: nickpearson/comicgame:latest
+        ports:
+        - name: web
+          containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+ name: comicgame-svc
+ namespace: comicgame-ns
+spec:
+ type: LoadBalancer
+ selector:
+   app: comicgame-app
+ ports:
+    - port: 80
+      targetPort: web
+ selector:
+   app: comicgame-app
