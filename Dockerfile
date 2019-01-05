@@ -1,11 +1,8 @@
 FROM python:2.7-alpine
 
-RUN apk add --update --virtual .build gcc musl-dev libffi-dev python2-dev openssl-dev linux-headers
-
 ADD requirements.txt /
-RUN pip install -r requirements.txt
 
-RUN apk del .build && rm -rf /var/cache/apk/*
+RUN apk add --update --virtual .build gcc musl-dev libffi-dev python2-dev openssl-dev linux-headers && pip install -r requirements.txt && apk del .build && rm -rf /var/cache/apk/*
 
 # Directories
 ADD database/*.py /database/
