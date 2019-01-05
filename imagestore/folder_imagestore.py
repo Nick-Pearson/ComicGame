@@ -1,15 +1,12 @@
 from .imagestore_base import ImageStoreBase
 import os
 
-class ImageStore(ImageStoreBase):
+class FolderImageStore(ImageStoreBase):
     def __init__(this):
+        print("Initialising folder storage...");
         this.folder = os.getcwd() + "/data";
         if not os.access(this.folder, os.F_OK):
             os.mkdir(this.folder);
-
-    def has_image(this, image_id):
-        path = this.folder + "/" + image_id + ".png";
-        return os.access(path, os.F_OK);
 
     def get_image(this, image_id):
         path = this.folder + "/" + image_id + ".png";

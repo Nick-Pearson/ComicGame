@@ -13,3 +13,8 @@ if "PORT" in __settings:
     PORT = int(__settings["PORT"]);
 else:
     PORT = 5000
+
+if "IMAGE_STORE_TYPE" in __settings:
+    IMAGE_STORE_TYPE = __settings["IMAGE_STORE_TYPE"];
+else:
+    IMAGE_STORE_TYPE = "folder"

@@ -4,10 +4,6 @@ class ImageStoreBase:
     ######################
     # Interface
     ######################
-
-    def has_image(this, image_id):
-        raise NotImplementedError("Method not implemented");
-
     def get_image(this, image_id):
         raise NotImplementedError("Method not implemented");
 

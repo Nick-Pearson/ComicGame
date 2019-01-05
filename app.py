@@ -1,7 +1,7 @@
 from flask import *
 from flask_socketio import SocketIO, join_room, leave_room, emit, send
 from database import Database
-from imagestore import ImageStore
+from imagestore import *
 import jwt
 import settings
 
@@ -25,7 +25,7 @@ CREATE_TIME = 60 * 3.5
 app = Flask(__name__)
 
 db = Database();
-imagestore = ImageStore();
+imagestore = get_image_store(settings.IMAGE_STORE_TYPE);
 
 @app.route('/', methods = ['GET'])
 def index():
@@ -47,7 +47,7 @@ def game():
 
 @app.route('/image/<image_id>', methods = ['GET'])
 def get_image(image_id):
-    if imagestore.has_image(image_id):
+    if db.image_exists(image_id):
         res = make_response(imagestore.get_image(image_id));
         res.headers.set("content-type", "image/png");
     else:

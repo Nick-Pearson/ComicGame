@@ -1,7 +1,7 @@
 import unittest
 import re
 from database import Database
-from imagestore import ImageStore
+from imagestore import *
 
 class TestDatabase(unittest.TestCase):
     def setUp(this):
@@ -127,15 +127,13 @@ class TestDatabase(unittest.TestCase):
 
 class TestImageStore(unittest.TestCase):
     def setUp(this):
-        this.ims = ImageStore();
+        this.ims = get_image_store("folder");
 
     def test_image_store(this):
         im = 'iVBORw0KGgoAAAANSUhEUgAAAHAAAACgCAYAAADU3uhkAAAAXElEQVR4nO3BMQEAAADCoPVPbQsvoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOBvGK8AAQqLoVoAAAAASUVORK5CYII=';
         imid = '0192';
 
         this.ims.store_image(imid, im);
-
-        this.assertTrue(this.ims.has_image(imid));
 
 
 

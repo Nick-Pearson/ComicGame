@@ -4,6 +4,7 @@ from .database_base import DatabaseBase
 
 class Database(DatabaseBase):
     def __init__(this):
+        print("Initialising memory database...");
         this.__users = {};
         this.__games = {};
         this.__images = {};
