@@ -41,6 +41,11 @@ spec:
             secretKeyRef:
               name: secrets
               key: oci_tennant
+        - name: OCI_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: secrets
+              key: oci_secret
 ---
 apiVersion: v1
 kind: Service

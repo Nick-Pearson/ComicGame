@@ -2,7 +2,10 @@
 from dotenv import dotenv_values
 import os
 
+print(os.environ);
 __settings = dotenv_values(dotenv_path = "./.env", verbose=True);
+print("load:");
+print(os.environ);
 
 if "JWT_SECRET" in __settings:
     JWT_KEY = __settings["JWT_SECRET"];
