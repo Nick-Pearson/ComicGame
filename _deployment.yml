@@ -25,6 +25,22 @@ spec:
         ports:
         - name: web
           containerPort: 80
+        env:
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: secrets
+              key: jwt_secret
+        - name: OCI_USER
+          valueFrom:
+            secretKeyRef:
+              name: secrets
+              key: oci_user
+        - name: OCI_TENNANT
+          valueFrom:
+            secretKeyRef:
+              name: secrets
+              key: oci_tennant
 ---
 apiVersion: v1
 kind: Service

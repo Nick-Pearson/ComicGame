@@ -13,3 +13,4 @@ pip-selfcheck.json
 node_modules/
 data/
 config
+_secrets.yml

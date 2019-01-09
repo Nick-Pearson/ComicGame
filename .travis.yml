@@ -17,18 +17,11 @@ script:
   - mocha test.js --reporter dot
 
 after_success:
-  - echo "JWT_SECRET=$PROD_JWT_SECRET" > .env
-  - echo "PORT=80" >> .env
+  - echo "PORT=80" > .env
   - echo "IMAGE_STORE_TYPE=object" >> .env
   - openssl genrsa -out ./key.pem -aes128 -passout pass:$OCI_SECRET 2048
   - export FP=$(openssl rsa -pubout -outform DER -in ./key.pem -passin pass:$OCI_SECRET 2>/dev/null | openssl md5 -c | sed 's/^.* //')
-  - echo "[DEFAULT]" > config
-  - echo "user=$OCI_USER" >> config
-  - echo "fingerprint=$FP" >> config
-  - echo "key_file=/root/.oci/oci_api_key.pem" >> config
-  - echo "tenancy=$OCI_TENNANCY" >> config
-  - echo "region=$OCI_REGION" >> config
-  - echo "pass_phrase=$OCI_SECRET" >> config
+  - echo "FINGERPRINT=$FP" >> .env
   - docker build -t nickpearson/comicgame .
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
   - docker push nickpearson/comicgame:latest
