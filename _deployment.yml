@@ -46,6 +46,8 @@ spec:
             secretKeyRef:
               name: secrets
               key: oci_secret
+        - name: MONGO_HOST
+          value: database-ss-0.database
 ---
 apiVersion: v1
 kind: Service
@@ -75,3 +77,63 @@ spec:
   minReplicas: 1
   maxReplicas: 10
   targetCPUUtilizationPercentage: 70
+---
+# MONGO DB STUFFS
+apiVersion: v1
+kind: Service
+metadata:
+  name: database-svc
+  namespace: comicgame-ns
+spec:
+  ports:
+  - port: 27017
+    targetPort: 27017
+  clusterIP: None
+  selector:
+    role: db
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: database-ss
+  namespace: comicgame-ns
+spec:
+  serviceName: "database-svc"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        role: db
+        environment: comicgame
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+      - name: database
+        image: mongo
+        command:
+          - mongod
+          - "--replSet"
+          - rs0
+          - "--smallfiles"
+          - "--noprealloc"
+        ports:
+        - name: db
+          containerPort: 27017
+        volumeMounts:
+        - name: db-storage
+          mountPath: /data/db
+      - name: mongo-sidecar
+        image: cvallance/mongo-k8s-sidecar
+        env:
+          - name: MONGO_SIDECAR_POD_LABELS
+            value: "role=db,environment=comicgame"
+  volumeClaimTemplates:
+  - metadata:
+      name: db-storage
+      annotations:
+        volume.beta.kubernetes.io/storage-class: "oci"
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 40Gi

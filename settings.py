@@ -2,10 +2,7 @@
 from dotenv import dotenv_values
 import os
 
-print(os.environ);
 __settings = dotenv_values(dotenv_path = "./.env", verbose=True);
-print("load:");
-print(os.environ);
 
 if "JWT_SECRET" in __settings:
     JWT_KEY = __settings["JWT_SECRET"];
@@ -23,6 +20,20 @@ if "IMAGE_STORE_TYPE" in __settings:
     IMAGE_STORE_TYPE = __settings["IMAGE_STORE_TYPE"];
 else:
     IMAGE_STORE_TYPE = "folder"
+
+if "DATABASE_TYPE" in __settings:
+    DATABASE_TYPE = __settings["DATABASE_TYPE"];
+
+    if DATABASE_TYPE == "mongo":
+        # get mogo credientials
+        if "MONGO_HOST" in __settings:
+            MONGO_HOST = __settings["MONGO_HOST"];
+        elif os.getenv("MONGO_HOST") is not None:
+            MONGO_HOST = os.getenv("MONGO_HOST");
+        else:
+            raise RuntimeError("Missing mongo db host");
+else:
+    DATABASE_TYPE = "memory"
 
 if "OCI_CONFIG_TYPE" in __settings:
     OCI_CONFIG_FROM_FILE = True if __settings["OCI_CONFIG_TYPE"] == "file" else False;

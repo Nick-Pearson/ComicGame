@@ -1,6 +1,6 @@
 from flask import *
 from flask_socketio import SocketIO, join_room, leave_room, emit, send
-from database import Database
+from database import *
 from imagestore import *
 import jwt
 import settings
@@ -24,7 +24,7 @@ CREATE_TIME = 60 * 3.5
 
 app = Flask(__name__)
 
-db = Database();
+db = get_database(settings.DATABASE_TYPE);
 imagestore = get_image_store(settings.IMAGE_STORE_TYPE);
 
 @app.route('/', methods = ['GET'])

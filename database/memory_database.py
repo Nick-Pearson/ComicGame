@@ -2,7 +2,7 @@
 
 from .database_base import DatabaseBase
 
-class Database(DatabaseBase):
+class MemoryDatabase(DatabaseBase):
     def __init__(this):
         print("Initialising memory database...");
         this.__users = {};
@@ -58,7 +58,6 @@ class Database(DatabaseBase):
         for player in record["players"]:
             # Check if we are already in this game
             if player["id"] == user_id:
-                player["name"] = name;
                 return True;
 
         data = {"id": user_id, "name": name, "score": 0};
@@ -81,16 +80,36 @@ class Database(DatabaseBase):
         if game_id not in this.__games:
             return None;
 
-        image_id = this.create_image(user_id);
+        image_id = this.create_image(user_id, 0, game_id);
 
         this.__games[game_id]["panels"].append(image_id);
         return image_id;
 
-    def add_image_record(this, image_id, created_by):
-        this.__images[image_id] = created_by;
+    def add_image_record(this, image_id, created_by, role, game_id):
+        this.__images[image_id] = [created_by, role, game_id];
 
     def image_exists(this, image_id):
         if image_id in this.__images:
             return True;
 
         return False;
+
+    def create_user(this, ip_addr):
+        user_id = this.generate_user_id();
+
+        while(this.user_exists(user_id)):
+            user_id = this.generate_user_id();
+
+        this.add_user_record(user_id, ip_addr);
+
+        return user_id;
+
+    def create_image(this, created_by, role, game_id):
+        image_id = this.generate_id(6);
+
+        while(this.image_exists(image_id)):
+            image_id = this.generate_id(6);
+
+        this.add_image_record(image_id, created_by, role, game_id);
+
+        return image_id;

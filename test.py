@@ -1,11 +1,13 @@
 import unittest
-import re
-from database import Database
+import re, sys, os
+from database import *
 from imagestore import *
 
 class TestDatabase(unittest.TestCase):
     def setUp(this):
-        this.db = Database();
+        sys.stdout = open(os.devnull, 'w');
+        this.db = get_database("memory");
+        sys.stdout = sys.__stdout__;
 
     def test_uid_size(this):
         for i in range(0, 30):
@@ -84,7 +86,7 @@ class TestDatabase(unittest.TestCase):
         this.assertEqual(len(record["players"]), 0);
 
         # test host is not added as a players
-        this.db.add_user_to_game(gid, host, "heloe");
+        this.assertTrue(this.db.add_user_to_game(gid, host, "heloe"));
         record = this.db.query_game_for_user(gid, host);
         this.assertTrue(record != None);
         this.assertTrue(record["is_host"]);
@@ -93,16 +95,17 @@ class TestDatabase(unittest.TestCase):
 
         # test player is added only once
         for i in range(0,1):
-            this.db.add_user_to_game(gid, player, "Nick");
+            this.assertTrue(this.db.add_user_to_game(gid, player, "Nick"));
             record = this.db.query_game_for_user(gid, player);
             this.assertTrue(record != None);
             this.assertEqual(len(record["players"]), 1);
             this.assertEqual(record["players"][0]["name"], "Nick");
+            this.assertEqual(record["players"][0]["id"], player);
             this.assertFalse(record["is_host"]);
             this.assertFalse(record["is_spectator"]);
 
         this.db.set_game_state(gid, 1, 0);
-        this.db.add_user_to_game(gid, spec, "Benji");
+        this.assertTrue(this.db.add_user_to_game(gid, spec, "Benji"));
         record = this.db.query_game_for_user(gid, spec);
         this.assertTrue(record != None);
         this.assertEqual(len(record["players"]), 1);
@@ -111,9 +114,10 @@ class TestDatabase(unittest.TestCase):
 
     def test_create_image(this):
         uid = this.db.create_user('127.0.0.15');
+        gid = this.db.create_game(uid);
 
         for i in range(0, 10):
-            iid = this.db.create_image(uid);
+            iid = this.db.create_image(uid, 0, gid);
             this.assertTrue(this.db.image_exists(iid));
 
     def test_add_panel(this):
@@ -127,7 +131,9 @@ class TestDatabase(unittest.TestCase):
 
 class TestImageStore(unittest.TestCase):
     def setUp(this):
+        sys.stdout = open(os.devnull, 'w');
         this.ims = get_image_store("folder");
+        sys.stdout = sys.__stdout__;
 
     def test_image_store(this):
         im = 'iVBORw0KGgoAAAANSUhEUgAAAHAAAACgCAYAAADU3uhkAAAAXElEQVR4nO3BMQEAAADCoPVPbQsvoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOBvGK8AAQqLoVoAAAAASUVORK5CYII=';

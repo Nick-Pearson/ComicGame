@@ -19,6 +19,7 @@ script:
 after_success:
   - echo "PORT=80" > .env
   - echo "IMAGE_STORE_TYPE=object" >> .env
+  - echo "DATABASE_TYPE=mongo" >> .env
   - openssl genrsa -out ./key.pem -aes128 -passout pass:$OCI_SECRET 2048
   - export FP=$(openssl rsa -pubout -outform DER -in ./key.pem -passin pass:$OCI_SECRET 2>/dev/null | openssl md5 -c | sed 's/^.* //')
   - echo "FINGERPRINT=$FP" >> .env

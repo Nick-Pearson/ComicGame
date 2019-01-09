@@ -9,7 +9,7 @@ class DatabaseBase:
     def user_exists(this, user_id):
         raise NotImplementedError("Method not implemented");
 
-    def add_user_record(this, user_id, ip_addr):
+    def create_user(this, ip_addr):
         raise NotImplementedError("Method not implemented");
 
     def game_exists(this, game_id):
@@ -37,16 +37,6 @@ class DatabaseBase:
     # Methods
     ######################
 
-    def create_user(this, ip_addr):
-        user_id = this.generate_user_id();
-
-        while(this.user_exists(user_id)):
-            user_id = this.generate_user_id();
-
-        this.add_user_record(user_id, ip_addr);
-
-        return user_id;
-
     def create_game(this, user_id):
         game_id = this.generate_id(4);
 
@@ -58,16 +48,6 @@ class DatabaseBase:
         # Update the user record with the new game id
 
         return game_id;
-
-    def create_image(this, created_by):
-        image_id = this.generate_id(6);
-
-        while(this.image_exists(image_id)):
-            image_id = this.generate_id(6);
-
-        this.add_image_record(image_id, created_by);
-
-        return image_id;
 
     def generate_user_id(this):
         out_id = '';
