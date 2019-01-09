@@ -9,8 +9,10 @@ class ObjectImageStore(ImageStoreBase):
         print("Initialising object storage...");
 
         if settings.OCI_CONFIG_FROM_FILE:
+            print(" - grabbing OCI config from file");
             config = oci.config.from_file("~/.oci/config", "DEFAULT");
         else:
+            print(" - grabbing OCI config from environment variables");
             config = {
                 'region': 'us-ashburn-1',
                 'log_requests': False,
@@ -21,7 +23,7 @@ class ObjectImageStore(ImageStoreBase):
                 'additional_user_agent': '',
                 'key_file': '/root/.oci/oci_api_key.pem'
             };
-            
+
         this.obj = oci.object_storage.ObjectStorageClient(config);
 
     ######################
