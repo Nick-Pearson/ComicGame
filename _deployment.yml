@@ -47,7 +47,9 @@ spec:
               name: secrets
               key: oci_secret
         - name: MONGO_HOST
-          value: database-ss-0.database
+          value: database-ss-0.database-svc
+        - name: MONGO_RS
+          value: rs0
 ---
 apiVersion: v1
 kind: Service
@@ -112,13 +114,13 @@ spec:
         image: mongo
         command:
           - mongod
+          - "--bind_ip_all"
           - "--replSet"
           - rs0
           - "--smallfiles"
           - "--noprealloc"
         ports:
-        - name: db
-          containerPort: 27017
+        - containerPort: 27017
         volumeMounts:
         - name: db-storage
           mountPath: /data/db

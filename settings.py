@@ -32,6 +32,13 @@ if "DATABASE_TYPE" in __settings:
             MONGO_HOST = os.getenv("MONGO_HOST");
         else:
             raise RuntimeError("Missing mongo db host");
+
+        if "MONGO_RS" in __settings:
+            MONGO_RS = __settings["MONGO_RS"];
+        elif os.getenv("MONGO_RS") is not None:
+            MONGO_RS = os.getenv("MONGO_RS");
+        else:
+            raise RuntimeError("Missing mongo db replica set");
 else:
     DATABASE_TYPE = "memory"
 
