@@ -129,6 +129,8 @@ spec:
         env:
           - name: MONGO_SIDECAR_POD_LABELS
             value: "role=db,environment=comicgame"
+          - name: KUBE_NAMESPACE
+            value: comicgame-ns
   volumeClaimTemplates:
   - metadata:
       name: db-storage
