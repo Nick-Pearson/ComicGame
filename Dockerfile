@@ -17,4 +17,4 @@ ADD .env /
 ADD key.pem /root/.oci/oci_api_key.pem
 
 EXPOSE 80
-CMD [ "python", "./app.py" ]
+CMD [ "python", "-u", "./app.py" ]

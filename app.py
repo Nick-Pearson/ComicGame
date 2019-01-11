@@ -1,3 +1,5 @@
+print("Initialising comic game API server...");
+
 from flask import *
 from flask_socketio import SocketIO, join_room, leave_room, emit, send
 from database import *

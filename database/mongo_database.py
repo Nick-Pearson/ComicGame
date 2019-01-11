@@ -7,7 +7,7 @@ from bson.objectid import ObjectId
 class MongoDatabase(DatabaseBase):
     def __init__(this):
         print("Initialising Mongo DB database...");
-        print(".");
+        print("- Trying to connect to " + settings.MONGO_HOST + ":27017 ...");
         this.client = pymongo.MongoClient("mongodb://" + settings.MONGO_HOST + ":27017/", replicaset=settings.MONGO_RS);
         print ("- Connected to: " + settings.MONGO_HOST + ":27017 v" + this.client.server_info()["version"]);
         this.db = this.client["comicgame"];
