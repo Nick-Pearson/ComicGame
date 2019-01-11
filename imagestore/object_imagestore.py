@@ -1,6 +1,7 @@
 from .imagestore_base import ImageStoreBase
 
 import oci
+from oci.config import validate_config
 import settings
 
 #Image store using oracle object storage
@@ -24,8 +25,14 @@ class ObjectImageStore(ImageStoreBase):
                 'key_file': '/root/.oci/oci_api_key.pem'
             };
 
-        oci.validate_config(config);
+        print(" - testing connection to OCI Object Storage...");
+        validate_config(config);
         this.obj = oci.object_storage.ObjectStorageClient(config);
+        connected = True if this.obj.get_bucket("npcloud", "images").status is 200 else False;
+        if not connected:
+            raise RuntimeError("Failed to connecto to OCI");
+
+        print(" - connected to OCI Object Storage");
 
     ######################
     # Interface
