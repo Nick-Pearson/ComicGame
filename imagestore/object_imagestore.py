@@ -24,7 +24,7 @@ class ObjectImageStore(ImageStoreBase):
                 'key_file': '/root/.oci/oci_api_key.pem'
             };
 
-        print(config);
+        oci.validate_config(config);
         this.obj = oci.object_storage.ObjectStorageClient(config);
 
     ######################
