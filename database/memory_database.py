@@ -1,6 +1,7 @@
 # In-Memory database, used for debugging
 
 from .database_base import DatabaseBase
+import time
 
 class MemoryDatabase(DatabaseBase):
     def __init__(this):
@@ -25,7 +26,7 @@ class MemoryDatabase(DatabaseBase):
         return False;
 
     def add_game_record(this, game_id, host_user):
-        this.__games[game_id] = {"host": host_user, "state":0, "players":[], "panels":[], "round_end": 0};
+        this.__games[game_id] = {"host": host_user, "state":0, "players":[], "panels":[], "round_end": 0, "create_time": int(time.time())};
 
     def query_game_for_user(this, game_id, user_id):
         if game_id not in this.__games:
@@ -113,3 +114,30 @@ class MemoryDatabase(DatabaseBase):
         this.add_image_record(image_id, created_by, role, game_id);
 
         return image_id;
+
+    def get_panels_in_game(this, game_id):
+        if game_id not in this.__games:
+            return [];
+
+        ids = this.__games[game_id]["panels"];
+        out = [];
+
+        for id in ids:
+            data = {"id": id, "created_by": this.__images[id][0]};
+            out.append(data);
+
+        return out;
+
+    def get_panels_by_user(this, user_id, limit):
+        out = [];
+        count = 0;
+
+        for id in this.__images.keys():
+            if count >= limit and limit >= 0:
+                break;
+
+            if this.__images[id][1] == 0 and this.__images[id][0] == user_id:
+                out.append(id);
+                count = count + 1;
+
+        return out;

@@ -155,6 +155,16 @@ canvas
   content: "."; /* ascii code for the ellipsis character */
 }
 
+.panel-gallery
+{
+  display: table;
+}
+
+.panel-gallery div
+{
+  display: table-cell;
+}
+
 @keyframes ellipsis
 {
   0% { content:  ".  "; }

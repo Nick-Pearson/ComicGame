@@ -88,7 +88,8 @@ Vue.component("panel-creator", {
       context: undefined,
       penDown: false,
       touchdata: {},
-      curTool: "0"
+      curTool: "0",
+      showprompt: false
     }
   },
   methods: {
@@ -151,7 +152,6 @@ Vue.component("panel-creator", {
       this.context.strokeStyle = colour;
       this.context.beginPath();
 
-      this.$refs.toolbar
       this.curTool = id;
     },
     submitimage: function(colour) {
@@ -159,10 +159,18 @@ Vue.component("panel-creator", {
       let data = canvas.toDataURL();
 
       let req = new XMLHttpRequest();
+      let that = this;
       req.onreadystatechange = function() {
         if(this.readyState == 4)
         {
-          console.log("got " + this.status);
+          // clear the screen
+          that.context.beginPath();
+          that.context.rect(0, 0, canvas.width, canvas.height);
+          that.context.fillStyle = "#fff";
+          that.context.fill();
+          that.context.beginPath();
+          that.showprompt = true;
+          that.$refs.prompt.scrollIntoView();
         }
       };
 
@@ -178,9 +186,74 @@ Vue.component("panel-creator", {
                 <colour-picker v-bind:selected="curTool==2" id=2 colour="#0f0" v-on:clicked="changecolour"></colour-picker>
                 <colour-picker v-bind:selected="curTool==3" id=3 colour="#00f" v-on:clicked="changecolour"></colour-picker>
               </div>
+              <div class="alert alert-primary" role="alert" v-if="showprompt" ref="prompt">
+                Great work! Create some more panels
+              </div>
               <div class="col-sm-11">
                 <canvas v-on:mousedown="mousedown" v-on:mouseup="mouseup" v-on:mousemove="mousemove" v-on:touchstart="touchstart" v-on:touchend="touchend" v-on:touchmove="touchmove" ref="canvas" width="1120" height="1600" style="max-height:90%; max-width: 100%"></canvas>
                 <a  href="javascript:void(0);" v-on:mousedown="submitimage"><button type="button" class="btn btn-primary">Done</button></a>
+              </div>
+            </div>`
+});
+
+
+
+Vue.component("strip-creator", {
+  props: {
+  },
+  mounted: function() {
+    // TODO: Query the API for our set of images
+  },
+  data: function() {
+    return {
+      curImage: "http://localhost:5000/static/images/loading.gif",
+      //curImage: "http://localhost:5000/static/images/panel1.png",
+      availableImages: [],
+      unusedImages: [],
+      comic: [],
+      curImageIdx: 0,
+      panel1: "http://localhost:5000/static/images/panel1.png",
+      panel2: "http://localhost:5000/static/images/panel2.png",
+      panel3: "http://localhost:5000/static/images/panel3.png"
+    }
+  },
+  methods: {
+    addCurPanel: function() {
+
+    },
+    prevPanel: function() {
+      this.curImageIdx--;
+    },
+    nextPanel: function() {
+      this.curImageIdx++;
+    },
+    submit: function() {
+
+    }
+  },
+  template: `<div>
+              <div class="panel-gallery">
+                <div><a href="javascript:void(0);" v-on:onclick="prevPanel" v-bind:class="{invisible: curImageIdx<=0}">
+                  <img src="static/images/prev.png" width=36px/>
+                </a></div>
+                <div><a href="javascript:void(0);" v-on:onclick="addCurPanel">
+                  <img v-bind:src="curImage" style="width:100%;"/>
+                </a></div>
+                <div><a href="javascript:void(0);" v-on:onclick="nextPanel" v-bind:class="{invisible: curImageIdx>=unusedImages.length-1}">
+                  <img src="static/images/next.png" width=36px />
+                </a></div>
+              </div>
+              <div class="row">
+                <div class="col-md-4 col-sm-4 col-xs-4 col-4">
+                  <img v-bind:src="panel1" width="98%"/>
+                </div>
+                <div class="col-md-4 col-sm-4 col-xs-4 col-4">
+                  <img v-bind:src="panel2" width="98%"/>
+                </div>
+                <div class="col-md-4 col-sm-4 col-xs-4 col-4">
+                  <img v-bind:src="panel3" width="98%"/>
+                </div>
+                <a  href="javascript:void(0);" v-on:onclick="submit"><button type="button" class="btn btn-primary">Done</button></a>
               </div>
             </div>`
 });
@@ -248,6 +321,16 @@ function SubscribeToWebsocket()
       console.log('Websocket connected!');
 
       ws.emit('subscribe', {"game_id": GameID});
+  });
+
+
+  ws.on('disconnect', function() {
+    GetGameInfo(GameID, function(info, found) {
+      if(found)
+      {
+          app.gameInfo = info;
+      }
+    });
   });
 
   // message handler for the 'join_room' channel

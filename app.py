@@ -20,9 +20,11 @@ class GameState:
     RATING = 5 # Quick fire rating strips off against eachother
     SCOREBOARD = 6 # Game is over, display scoreboard. The game remains in this state forevermore
 
-DRAW_TIME = 60 * 3.5
+DRAW_TIME = 60 * 1.5
 GRACE_PERIOD = 10
 CREATE_TIME = 60 * 3.5
+
+GAME_USER = "COMICGAME";
 
 app = Flask(__name__)
 
@@ -127,6 +129,46 @@ def draw_time_compete(game_id):
 
 def start_create_state(game_id):
     with app.app_context():
+        # Distribute images to the players
+        record = db.query_game_for_user(game_id, "");
+        panels = db.get_panels_in_game(game_id);
+
+        players = record["players"];
+        num_players = len(players);
+        player_idx = 0;
+
+        assignments = {};
+        for i in range(0, num_players):
+            assignments[players[i]["id"]] = [];
+
+        for i in range(0, len(panels)):
+            # Don't assign a panel to the player which created it
+            if(panels[i]["created_by"] == players[player_idx]["id"]):
+                player_idx = player_idx + 1;
+                if player_idx >= num_players:
+                    player_idx = 0;
+
+            assignments[players[player_idx]["id"]].append(panels[i]["id"]);
+
+        amount_per_player = 6;
+        amount_needed = (num_players * amount_per_player) - len(panels);
+
+        if amount_needed > 0:
+            # we are aiming for 6 panels per player, if there is not enough go grab some pre-made ones
+            backup_panels = db.get_panels_by_user(GAME_USER, amount_needed);
+
+            if len(backup_panels) > 0:
+                player_idx = 0;
+
+                for i in range(0, len(amount_needed)):
+                    while len(assignments[players[player_idx]["id"]]) >= amount_per_player:
+                        player_idx = player_idx + 1;
+
+                    j = i % len(backup_panels);
+                    assignments[players[player_idx]["id"]].append(backup_panels[j]);
+
+        print(assignments);
+
         end_time = int(time.time() + CREATE_TIME);
 
         db.set_game_state(game_id, GameState.CREATING, end_time);
@@ -139,6 +181,16 @@ def create_time_compete(game_id):
     with app.app_context():
         db.set_game_state(game_id, GameState.GATHERING, 0);
         emit('update', {'state': GameState.GATHERING}, room=game_id, namespace='/');
+
+        t = Timer(GRACE_PERIOD, gather_time_compete, [game_id]);
+        t.start();
+
+def gather_time_compete(game_id):
+    with app.app_context():
+        # TODO: Find all unused assigned panels, and randomly build comics if requried
+
+        db.set_game_state(game_id, GameState.RATING, 0);
+        emit('update', {'state': GameState.RATING}, room=game_id, namespace='/');
 
 @app.route('/api/game/<game_id>/join', methods = ["POST"])
 def join_game(game_id):

@@ -2,6 +2,7 @@ from .database_base import DatabaseBase
 import settings
 import pymongo
 from bson.objectid import ObjectId
+import time
 
 # Base class for all database implementations
 class MongoDatabase(DatabaseBase):
@@ -28,7 +29,7 @@ class MongoDatabase(DatabaseBase):
         return doc is not None;
 
     def add_game_record(this, game_id, host_user):
-        data = {"code": game_id, "host": host_user, "state":0, "round_end": 0, "players": []}
+        data = {"code": game_id, "host": host_user, "state":0, "round_end": 0, "players": [], "create_time": int(time.time())}
         doc = this.db["games"].insert_one(data);
 
     def query_game_for_user(this, game_id, user_id):

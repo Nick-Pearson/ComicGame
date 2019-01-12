@@ -9,3 +9,7 @@ TODO:
 * Write stress test scripts
 If time!
 * Deployment to oracle from travis
+
+
+* Make the join thing a <form>
+* Add details of how to join and a player count to the 'waiting for players' screen

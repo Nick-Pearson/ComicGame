@@ -120,14 +120,34 @@ class TestDatabase(unittest.TestCase):
             iid = this.db.create_image(uid, 0, gid);
             this.assertTrue(this.db.image_exists(iid));
 
-    def test_add_panel(this):
+    def test_panels(this):
         uid = this.db.create_user('127.0.0.16');
         gid = this.db.create_game(uid);
 
         iid = this.db.add_panel_to_game(gid, uid);
         this.assertTrue(this.db.image_exists(iid));
 
-        # TODO: Assert the image is added to the game
+        panels = this.db.get_panels_in_game(gid);
+
+        this.assertEqual(len(panels), 1);
+        this.assertEqual(panels[0]["id"], iid);
+        this.assertEqual(panels[0]["created_by"], uid);
+
+        this.db.add_panel_to_game(gid, uid);
+        panels = this.db.get_panels_in_game(gid);
+
+        this.assertEqual(len(panels), 2);
+
+        panels = this.db.get_panels_by_user(uid, -1);
+        this.assertEqual(len(panels), 2);
+
+        limits = [2, 1, 0, -10];
+        for limit in limits:
+            panels = this.db.get_panels_by_user(uid, limit);
+            if limit < 0:
+                limit = 2;
+
+            this.assertEqual(len(panels), limit);
 
 class TestImageStore(unittest.TestCase):
     def setUp(this):
@@ -140,12 +160,6 @@ class TestImageStore(unittest.TestCase):
         imid = '0192';
 
         this.ims.store_image(imid, im);
-
-
-
-
-
-
 
 
 class TestServer(unittest.TestCase):

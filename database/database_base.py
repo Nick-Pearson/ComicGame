@@ -33,6 +33,13 @@ class DatabaseBase:
     def image_exists(this, image_id):
         raise NotImplementedError("Method not implemented");
 
+    def get_panels_in_game(this, game_id):
+        raise NotImplementedError("Method not implemented");
+
+    def get_panels_by_user(this, user_id, limit):
+        raise NotImplementedError("Method not implemented");
+
+
     ######################
     # Methods
     ######################

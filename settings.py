@@ -42,17 +42,18 @@ if "DATABASE_TYPE" in __settings:
 else:
     DATABASE_TYPE = "memory"
 
-if "OCI_CONFIG_TYPE" in __settings:
-    OCI_CONFIG_FROM_FILE = True if __settings["OCI_CONFIG_TYPE"] == "file" else False;
-else:
-    OCI_CONFIG_FROM_FILE = False;
+if IMAGE_STORE_TYPE == "object":
+    if "OCI_CONFIG_TYPE" in __settings:
+        OCI_CONFIG_FROM_FILE = True if __settings["OCI_CONFIG_TYPE"] == "file" else False;
+    else:
+        OCI_CONFIG_FROM_FILE = False;
 
-if not OCI_CONFIG_FROM_FILE:
-    # look for oci config values
-    OCI_SECRET = os.getenv("OCI_SECRET");
-    OCI_USER = os.getenv("OCI_USER");
-    OCI_TENNANT = os.getenv("OCI_TENNANT");
-    OCI_FINGERPRINT = None if "FINGERPRINT" not in __settings else __settings["FINGERPRINT"];
+    if not OCI_CONFIG_FROM_FILE:
+        # look for oci config values
+        OCI_SECRET = os.getenv("OCI_SECRET");
+        OCI_USER = os.getenv("OCI_USER");
+        OCI_TENNANT = os.getenv("OCI_TENNANT");
+        OCI_FINGERPRINT = None if "FINGERPRINT" not in __settings else __settings["FINGERPRINT"];
 
-    if OCI_SECRET is None or OCI_USER is None or OCI_TENNANT is None or OCI_FINGERPRINT is None:
-        raise RuntimeError("Missing OCI credientials in environment");
+        if OCI_SECRET is None or OCI_USER is None or OCI_TENNANT is None or OCI_FINGERPRINT is None:
+            raise RuntimeError("Missing OCI credientials in environment");
