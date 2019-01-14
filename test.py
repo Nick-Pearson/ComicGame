@@ -64,6 +64,7 @@ class TestDatabase(unittest.TestCase):
         this.assertFalse(record["is_spectator"]);
         this.assertEqual(record["game_id"], gid);
         this.assertEqual(len(record["players"]), 0);
+        this.assertEqual(record["vote"], "");
 
         record = this.db.query_game_for_user(gid, spec);
         this.assertTrue(record != None);
@@ -72,6 +73,7 @@ class TestDatabase(unittest.TestCase):
         this.assertTrue(record["is_spectator"]);
         this.assertEqual(record["game_id"], gid);
         this.assertEqual(len(record["players"]), 0);
+        this.assertEqual(record["vote"], "");
 
     def test_add_players(this):
         host = this.db.create_user('127.0.0.12');
@@ -179,6 +181,58 @@ class TestDatabase(unittest.TestCase):
         iid = this.db.add_comic_to_game(gid, uid, comic);
 
         this.assertTrue(iid != None);
+
+        comics = this.db.get_comics_in_game(gid);
+        this.assertEqual(len(comics), 1);
+        this.assertEqual(comics[0]["id"], iid);
+        this.assertEqual(comics[0]["by"], uid);
+        this.assertEqual(comics[0]["panels"], comic);
+
+    def test_votes(this):
+        uid = this.db.create_user('127.0.0.18');
+        gid = this.db.create_game(uid);
+
+        this.assertTrue(this.db.get_vote_info(" ") == None);
+
+        record = this.db.query_game_for_user(gid, uid);
+        this.assertTrue(record != None);
+        this.assertEqual(record["vote"], "");
+
+        vid = this.db.create_vote(gid, "cA", "cB", 1, 5);
+        this.assertTrue(vid != None);
+        this.db.set_cur_vote(gid, vid);
+
+        record = this.db.query_game_for_user(gid, uid);
+        this.assertTrue(record != None);
+        this.assertEqual(record["vote"], vid);
+
+        for i in range(0, 6):
+            info = this.db.get_vote_info(vid);
+            this.assertTrue(info != None);
+            this.assertEqual(info["id"], vid);
+            this.assertEqual(info["index"], 1);
+            this.assertEqual(info["forA"], i);
+            this.assertEqual(info["forB"], 0);
+            this.assertEqual(info["comicA"], "cA");
+            this.assertEqual(info["comicB"], "cB");
+            this.assertEqual(info["complete"], i > 4);
+
+            result = this.db.add_vote(vid, "u" + str(i), True);
+            this.assertEqual(result, i >= 4);
+
+        # Test unable to vote twice
+        info = this.db.get_vote_info(vid);
+        this.assertTrue(info != None);
+        this.assertEqual(info["forA"], 6);
+        this.assertTrue(info["complete"]);
+
+        this.assertFalse(this.db.add_vote(vid, "u0", True));
+
+        info = this.db.get_vote_info(vid);
+        this.assertTrue(info != None);
+        this.assertEqual(info["forA"], 6);
+        this.assertTrue(info["complete"]);
+
 
 
 

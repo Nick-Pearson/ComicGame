@@ -11,7 +11,12 @@ app = new Vue({
   data: {
     gameInfo: undefined,
     GameState: GameState,
-    waitingForPlayers: false
+    waitingForPlayers: false,
+    voteInfo: undefined,
+    hasVoted: false,
+    comicASrc: undefined,
+    comicBSrc: undefined,
+    winnerSrc: undefined
   }
 });
 
@@ -21,7 +26,7 @@ Vue.component('player-entry', {
     'player':Object,
     'show_score': {type: Boolean, default: true}
   },
-  template: `<div><h3>{{player.name}}<span v-if="show_score"> - {{player.score}}</span></h3></div>`
+  template: `<div><h3>{{player.name}}<span v-if="show_score"> - {{player.score}} points</span></h3></div>`
 });
 
 
@@ -222,17 +227,19 @@ Vue.component("strip-creator", {
   },
   data: function() {
     return {
-      curImage: "http://localhost:5000/static/images/loading.gif",
+      curImage: document.location.origin + "/static/images/loading.gif",
       unusedImages: [],
       comic: [],
       curImageIdx: 0,
-      panel1: "http://localhost:5000/static/images/panel1.png",
-      panel2: "http://localhost:5000/static/images/panel2.png",
-      panel3: "http://localhost:5000/static/images/panel3.png"
+      panel1: document.location.origin + "/static/images/panel1.png",
+      panel2: document.location.origin + "/static/images/panel2.png",
+      panel3: document.location.origin + "/static/images/panel3.png"
     }
   },
   methods: {
     addCurPanel: function() {
+      if(this.comic.length >= 3) return;
+
       this.comic.push(this.unusedImages[this.curImageIdx]);
       this.unusedImages.splice(this.curImageIdx, 1);
 
@@ -258,9 +265,9 @@ Vue.component("strip-creator", {
       app.waitingForPlayers = true;
     },
     updateComic: function() {
-      this.panel1 = "http://localhost:5000/static/images/panel1.png";
-      this.panel2 = "http://localhost:5000/static/images/panel2.png";
-      this.panel3 = "http://localhost:5000/static/images/panel3.png";
+      this.panel1 = document.location.origin + "/static/images/panel1.png";
+      this.panel2 = document.location.origin + "/static/images/panel2.png";
+      this.panel3 = document.location.origin + "/static/images/panel3.png";
 
       let len = this.comic.length;
       if (len > 0)
@@ -296,6 +303,7 @@ Vue.component("strip-creator", {
       if(this.comic.length > idx)
       {
         this.comic.splice(idx, 1);
+        this.updateComic();
       }
     }
   },
@@ -363,6 +371,11 @@ function OnPageLoad()
 
     app.gameInfo = info;
 
+    if(app.gameInfo.vote != "")
+    {
+      UpdateVoteInfo();
+    }
+
     SubscribeToWebsocket();
   });
 }
@@ -403,6 +416,10 @@ function SubscribeToWebsocket()
       if(found)
       {
           app.gameInfo = info;
+          if(app.gameInfo.vote != "")
+          {
+            UpdateVoteInfo();
+          }
       }
     });
   });
@@ -413,15 +430,57 @@ function SubscribeToWebsocket()
     keys.forEach(function(key) {
       app.gameInfo[key] = data[key];
     });
+
+    app.waitingForPlayers = false;
+    app.hasVoted = false;
   });
 
   ws.on('new_player', function(player) {
     app.gameInfo.players.push(player);
   });
+
+  ws.on('new_vote', function(data) {
+      app.gameInfo.vote = data.vote_id;
+      UpdateVoteInfo();
+  });
+
+  ws.on('vote_complete', function(data) {
+    console.log("VOTE COMPLETE:");
+      app.voteInfo = data;
+      winner = data.comicA;
+
+      if(data.forB > data.forA)
+        winner = data.comicB;
+
+      app.winnerSrc = document.location.origin + "/image/" + winner;
+  });
 }
 
-function OnSocketMessage(event)
+function UpdateVoteInfo()
 {
-  console.log("Recieved:");
-  console.log(event);
+  let req = new XMLHttpRequest();
+  req.onreadystatechange = function() {
+    if(this.readyState == 4)
+    {
+      let info = JSON.parse(this.responseText);
+
+      app.voteInfo = info;
+      app.hasVoted = false;
+
+      app.comicASrc = document.location.origin + "/image/" + app.voteInfo.comicA;
+      app.comicBSrc = document.location.origin + "/image/" + app.voteInfo.comicB;
+    }
+  };
+
+  req.open("GET", GetAPIRoot() + "/vote/" + encodeURIComponent(app.gameInfo.vote), true);
+  req.send();
+}
+
+function VoteFor(vote)
+{
+  let req = new XMLHttpRequest();
+  req.open("POST", GetAPIRoot() + "/vote/" + encodeURIComponent(app.gameInfo.vote), true);
+  req.setRequestHeader("Content-type", "application/json");
+  req.send(JSON.stringify({"vote": vote}));
+  app.hasVoted = true;
 }

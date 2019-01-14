@@ -9,6 +9,7 @@ class MemoryDatabase(DatabaseBase):
         this.__users = {};
         this.__games = {};
         this.__images = {};
+        this.__votes = {};
 
     def user_exists(this, user_id):
         if user_id in this.__users:
@@ -26,7 +27,7 @@ class MemoryDatabase(DatabaseBase):
         return False;
 
     def add_game_record(this, game_id, host_user):
-        this.__games[game_id] = {"host": host_user, "state":0, "players":[], "panels":[], "comics":[], "round_end": 0, "create_time": int(time.time()), "assignments": {}};
+        this.__games[game_id] = {"host": host_user, "state":0, "players":[], "panels":[], "comics":[], "round_end": 0, "create_time": int(time.time()), "assignments": {}, "vote": ""};
 
     def query_game_for_user(this, game_id, user_id):
         if game_id not in this.__games:
@@ -40,6 +41,7 @@ class MemoryDatabase(DatabaseBase):
         data["is_host"] = (record["host"] == user_id);
         data["is_spectator"] = not data["is_host"];
         data["round_end"] = record["round_end"];
+        data["vote"] = record["vote"];
 
         for player in record["players"]:
             if player["id"] == user_id:
@@ -167,3 +169,76 @@ class MemoryDatabase(DatabaseBase):
         iid = this.create_image(user_id, 1, game_id);
         this.__games[game_id]["comics"].append({"id": iid, "created_by": user_id, "panels": comic});
         return iid;
+
+    def set_cur_vote(this, game_id, vote_id):
+        if game_id not in this.__games:
+            return None
+
+        this.__games[game_id]["vote"] = vote_id;
+
+    def get_comics_in_game(this, game_id):
+        if game_id not in this.__games:
+            return [];
+
+        comics = this.__games[game_id]["comics"];
+        out = [];
+
+        for i in range(0, len(comics)):
+            data = {};
+            data["id"] = comics[i]["id"];
+            data["by"] = comics[i]["created_by"];
+            data["panels"] = comics[i]["panels"];
+            out.append(data);
+
+        return out;
+
+    def get_vote_info(this, vote_id):
+        if vote_id not in this.__votes:
+            return None;
+
+        record = this.__votes[vote_id];
+
+        data = {};
+        data["id"] = record["id"];
+        data["game_id"] = record["game_id"];
+        data["index"] = record["index"];
+        data["complete"] = record["complete"];
+        data["forA"] = record["forA"];
+        data["forB"] = record["forB"];
+        data["comicA"] = record["comicA"];
+        data["comicB"] = record["comicB"];
+
+        return data;
+
+    def create_vote(this, game_id, comicA, comicB, index, votes_expected):
+        vote_id = this.generate_id(10);
+
+        while vote_id in this.__votes:
+            vote_id = this.generate_id(10);
+
+        this.__votes[vote_id] = {"id": vote_id, "game_id": game_id, "index": index, "complete": False, "expected": votes_expected, "forA": 0, "forB": 0, "players": [], "comicA": comicA, "comicB": comicB};
+        return vote_id;
+
+
+    def add_vote(this, vote_id, user_id, forA):
+        if vote_id not in this.__votes:
+            return False;
+
+        record = this.__votes[vote_id];
+
+        for player in record["players"]:
+            if player == user_id:
+                return False
+
+        if forA:
+            this.__votes[vote_id]["forA"] = this.__votes[vote_id]["forA"] + 1;
+        else:
+            this.__votes[vote_id]["forB"] = this.__votes[vote_id]["forB"] + 1;
+
+        this.__votes[vote_id]["players"].append(user_id);
+
+        record = this.__votes[vote_id];
+
+        complete = record["forA"] + record["forB"] >= record["expected"];
+        this.__votes[vote_id]["complete"] = complete;
+        return complete

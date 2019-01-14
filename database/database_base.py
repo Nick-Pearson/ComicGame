@@ -48,6 +48,22 @@ class DatabaseBase:
     def add_comic_to_game(this, game_id, user_id, comic):
         raise NotImplementedError("Method not implemented");
 
+    #newww
+    def set_cur_vote(this, game_id, vote_id):
+        raise NotImplementedError("Method not implemented");
+
+    def get_comics_in_game(this, game_id):
+        raise NotImplementedError("Method not implemented");
+
+    def get_vote_info(this, vote_id):
+        raise NotImplementedError("Method not implemented");
+
+    def create_vote(this, game_id, comicA, comicB, index, votes_expected):
+        raise NotImplementedError("Method not implemented");
+    
+    def add_vote(this, vote_id, user_id, forA):
+        raise NotImplementedError("Method not implemented");
+
     ######################
     # Methods
     ######################

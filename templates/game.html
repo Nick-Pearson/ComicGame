@@ -49,7 +49,7 @@
       <div v-else-if="gameInfo.state == GameState.CREATING">
         <div v-if="gameInfo.is_host || gameInfo.is_spectator">
           <h2>Make some comics out of the panels on your screen!</h2>
-          <p>We've even thrown in some of our own</p>
+          <p>We may have even added some extra panels!</p>
           <countdown-clock v-bind:end_time="gameInfo.round_end"></countdown-clock>
         </div>
         <div v-else>
@@ -60,6 +60,42 @@
       <div v-else-if="gameInfo.state == GameState.GATHERING">
         <h2>Comics complete!</h2>
         <p>It's finally time to find out which of these comics is the best...</p>
+      </div>
+      <div v-else-if="gameInfo.state == GameState.RATING">
+        <div v-if="gameInfo.is_host || gameInfo.is_spectator">
+          <div v-if="voteInfo.complete">
+            <h2>Winner!</h2>
+            <img v-bind:src="winnerSrc" class="comicImage"/>
+          </div>
+          <div v-else>
+            <h2>Vote now on your phone!</h2>
+            <h3>Comic A:</h3>
+            <img v-bind:src="comicASrc" class="comicImage"/>
+            <h3>vs.</h3>
+            <h3>Comic B</h3>
+            <img v-bind:src="comicBSrc" class="comicImage"/>
+          </div>
+        </div>
+        <div v-else>
+          <div v-if="hasVoted">
+              <h2>Vote submitted!</h2>
+          </div>
+          <div v-else-if="voteInfo != undefined">
+            <h2>Pick your favorite comic</h2>
+
+            <a href="javascript:void(0);" onclick="VoteFor(true);"><button type="button" class="btn btn-primary btn-large">Comic A</button></a>
+            <a href="javascript:void(0);" onclick="VoteFor(false);"><button type="button" class="btn btn-primary btn-large">Comic B</button></a>
+          </div>
+        </div>
+      </div>
+      <div v-else-if="gameInfo.state == GameState.SCOREBOARD">
+        <h2>Final Scores</h2>
+        <player-entry
+          v-for="player in gameInfo.players"
+          v-bind:player="player"
+          v-bind:show_score="true"
+          v-bind:key="player.id"></player-entry>
+          <a href="/"><button type="button" class="btn btn-primary btn-large">Home Page</button></a>
       </div>
     </div>
 

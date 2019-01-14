@@ -24,9 +24,9 @@ class GameState:
     RATING = 5 # Quick fire rating strips off against eachother
     SCOREBOARD = 6 # Game is over, display scoreboard. The game remains in this state forevermore
 
-DRAW_TIME = 60 * 3.5
+DRAW_TIME = 60 * 1
 GRACE_PERIOD = 10
-CREATE_TIME = 60 * 3.5
+CREATE_TIME = 60 * 1
 
 GAME_USER = "COMICGAME";
 
@@ -59,7 +59,7 @@ def get_image(image_id):
         data = imagestore.get_image(image_id)
         res = make_response(data);
         if data is None:
-            res.status = 500;
+            res.status_code = 500;
         res.headers.set("content-type", "image/png");
     else:
         res = make_response(jsonify({"error": "Image not found"}));
@@ -77,7 +77,7 @@ def get_assignments(game_id):
 
     if assignments is None:
         res =  make_response(jsonify({"error": "No assignments found"}));
-        res.status = 404;
+        res.status_code = 404;
         return res;
 
     return make_response(jsonify({"assignments": assignments}));
@@ -102,8 +102,8 @@ def make_comic(comic):
 @app.route('/api/game/<game_id>/comics', methods = ["POST"])
 def post_comic(game_id):
     if request.json is None or "comic" not in request.json:
-        res = make_response({"error": "Invalid parameters: Parameter must be a valid JSON object"});
-        res.status = 400;
+        res = make_response(jsonify({"error": "Invalid parameters: Parameter must be a valid JSON object"}));
+        res.status_code = 400;
         return res;
 
     request_data = parse_request_data();
@@ -150,6 +150,51 @@ def get_game_info(game_id):
 
     return res
 
+
+@app.route("/api/vote/<vote_id>", methods = ["GET"])
+def get_vote_info(vote_id):
+    record = db.get_vote_info(vote_id);
+
+    if record != None:
+        res = make_response(jsonify(record));
+    else:
+        res = make_response(jsonify({"error":"Game not found"}));
+        res.status_code = 404;
+
+    return res
+
+@app.route("/api/vote/<vote_id>", methods = ["POST"])
+def post_vote_info(vote_id):
+    if request.json is None or "vote" not in request.json:
+        res = make_response(jsonify({"error": "Invalid parameters: Parameter must be a valid JSON object"}));
+        res.status_code = 400;
+        return res;
+
+    request_data = parse_request_data();
+    result = db.add_vote(vote_id, request_data["user_id"], request.json["vote"]);
+
+    if result:
+        # make a new vote
+        vote_info = db.get_vote_info(vote_id);
+        comics = db.get_comics_in_game(vote_info["game_id"]);
+
+        if vote_info["index"] + 1 < len(comics):
+            t = Timer(GRACE_PERIOD, create_new_vote, [vote_info["game_id"]]);
+            t.start();
+        else:
+            t = Timer(GRACE_PERIOD, go_to_scoreboard, [vote_info["game_id"]]);
+            t.start();
+
+
+        emit('vote_complete', vote_info, room=vote_info["game_id"], namespace='/');
+
+    return jsonify({"success": True});
+
+def go_to_scoreboard(game_id):
+    with app.app_context():
+        db.set_game_state(game_id, GameState.SCOREBOARD, 0);
+        emit('update', {'state': GameState.SCOREBOARD}, room=game_id, namespace='/');
+
 @app.route('/api/game/<game_id>/start', methods = ["POST"])
 def start_game(game_id):
     # TODO:
@@ -161,7 +206,7 @@ def start_game(game_id):
 
     if record is None or not record["is_host"]:
         res = make_response(jsonify({"success": False}));
-        res.status = 400;
+        res.status_code = 400;
     else:
         end_time = int(time.time() + DRAW_TIME);
 
@@ -245,12 +290,61 @@ def create_time_compete(game_id):
         t = Timer(GRACE_PERIOD, gather_time_compete, [game_id]);
         t.start();
 
+def auto_create_comics(game_id):
+    # TODO: Find all unused assigned panels, and randomly build comics if requried
+    record = db.query_game_for_user(game_id, "");
+    comics = db.get_comics_in_game(game_id);
+
+    players = record["players"];
+
+    for comic in comics:
+        players.remove(comic["by"]);
+
+    for player in players:
+        assignments = db.get_assignments_for(game_id, player["id"]);
+        comic = assignments[:3];
+
+        data = make_comic(comic);
+
+        iid = db.add_comic_to_game(game_id, player["id"], comic);
+        imagestore.store_image(iid, data);
+
+def create_new_vote(game_id):
+    with app.app_context():
+        # Votes on the next comic available
+        record = db.query_game_for_user(game_id, "");
+        comics = db.get_comics_in_game(game_id);
+
+        if record["vote"] == "":
+            comicA = comics[0]["id"];
+            comicB = comics[1]["id"];
+            index = 1
+        else:
+            vote_info = db.get_vote_info(record["vote"]);
+            index = vote_info["index"] + 1;
+
+            if vote_info["forA"] > vote_info["forB"]:
+                comicA = vote_info["comicA"];
+                comicB = comics[index]["id"];
+            else:
+                comicA = comics[index]["id"];
+                comicB = vote_info["comicB"]
+
+
+        vid = db.create_vote(game_id, comicA, comicB, index, len(record["players"]));
+
+        db.set_cur_vote(game_id, vid);
+        emit('new_vote', {'vote_id': vid}, room=game_id, namespace='/');
+
+
 def gather_time_compete(game_id):
     with app.app_context():
-        # TODO: Find all unused assigned panels, and randomly build comics if requried
+        auto_create_comics(game_id);
 
         db.set_game_state(game_id, GameState.RATING, 0);
         emit('update', {'state': GameState.RATING}, room=game_id, namespace='/');
+
+        create_new_vote(game_id);
 
 @app.route('/api/game/<game_id>/join', methods = ["POST"])
 def join_game(game_id):
@@ -259,7 +353,7 @@ def join_game(game_id):
 
     if "name" not in request.form:
         res = make_response(jsonify({"error": "Player name is required"}));
-        res.status = 400;
+        res.status_code = 400;
         return res;
 
     if db.add_user_to_game(game_id, request_data["user_id"], request.form["name"]):
@@ -286,7 +380,7 @@ def add_panel(game_id):
         b64String = parts[len(parts)-1];
 
         imagestore.store_image(image_id, b64String);
-        res = make_response(jsonify({"success":True, "game_id": game_id}));
+        res = make_response(jsonify({"success":True, "game_id": game_id, "image_id": image_id}));
     else:
         res = make_response(jsonify({"error":"Game not found"}));
         res.status_code = 404;
