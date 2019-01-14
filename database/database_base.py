@@ -39,6 +39,14 @@ class DatabaseBase:
     def get_panels_by_user(this, user_id, limit):
         raise NotImplementedError("Method not implemented");
 
+    def get_assignments_for(this, game_id, user_id):
+        raise NotImplementedError("Method not implemented");
+
+    def store_assignments(this, game_id, assignments):
+        raise NotImplementedError("Method not implemented");
+
+    def add_comic_to_game(this, game_id, user_id, comic):
+        raise NotImplementedError("Method not implemented");
 
     ######################
     # Methods

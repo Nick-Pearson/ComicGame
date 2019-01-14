@@ -10,7 +10,8 @@ app = new Vue({
   el: "#game",
   data: {
     gameInfo: undefined,
-    GameState: GameState
+    GameState: GameState,
+    waitingForPlayers: false
   }
 });
 
@@ -88,8 +89,7 @@ Vue.component("panel-creator", {
       context: undefined,
       penDown: false,
       touchdata: {},
-      curTool: "0",
-      showprompt: false
+      curTool: "0"
     }
   },
   methods: {
@@ -169,7 +169,6 @@ Vue.component("panel-creator", {
           that.context.fillStyle = "#fff";
           that.context.fill();
           that.context.beginPath();
-          that.showprompt = true;
           that.$refs.prompt.scrollIntoView();
         }
       };
@@ -186,7 +185,7 @@ Vue.component("panel-creator", {
                 <colour-picker v-bind:selected="curTool==2" id=2 colour="#0f0" v-on:clicked="changecolour"></colour-picker>
                 <colour-picker v-bind:selected="curTool==3" id=3 colour="#00f" v-on:clicked="changecolour"></colour-picker>
               </div>
-              <div class="alert alert-primary" role="alert" v-if="showprompt" ref="prompt">
+              <div class="alert alert-primary" role="alert"ref="prompt">
                 Great work! Create some more panels
               </div>
               <div class="col-sm-11">
@@ -202,13 +201,28 @@ Vue.component("strip-creator", {
   props: {
   },
   mounted: function() {
-    // TODO: Query the API for our set of images
+    let req = new XMLHttpRequest();
+    let that = this;
+    req.onreadystatechange = function() {
+      if(this.readyState == 4)
+      {
+        data = JSON.parse(this.responseText);
+
+        that.unusedImages = data.assignments;
+
+        that.comic = [];
+
+        that.curImageIdx = 0;
+        that.updateCurrentImage();
+      }
+    };
+
+    req.open("GET", GetAPIRoot() + "/game/" + encodeURIComponent(GameID) + "/assignments", true);
+    req.send();
   },
   data: function() {
     return {
       curImage: "http://localhost:5000/static/images/loading.gif",
-      //curImage: "http://localhost:5000/static/images/panel1.png",
-      availableImages: [],
       unusedImages: [],
       comic: [],
       curImageIdx: 0,
@@ -219,41 +233,101 @@ Vue.component("strip-creator", {
   },
   methods: {
     addCurPanel: function() {
+      this.comic.push(this.unusedImages[this.curImageIdx]);
+      this.unusedImages.splice(this.curImageIdx, 1);
 
+      this.updateCurrentImage();
+      this.updateComic();
     },
     prevPanel: function() {
       this.curImageIdx--;
+      this.updateCurrentImage();
     },
     nextPanel: function() {
       this.curImageIdx++;
+      this.updateCurrentImage();
     },
     submit: function() {
+      let req = new XMLHttpRequest();
+      let that = this;
 
+      req.open("POST", GetAPIRoot() + "/game/" + encodeURIComponent(GameID) + "/comics", true);
+      req.setRequestHeader("Content-type", "application/json");
+      req.send(JSON.stringify({"comic": this.comic}));
+
+      app.waitingForPlayers = true;
+    },
+    updateComic: function() {
+      this.panel1 = "http://localhost:5000/static/images/panel1.png";
+      this.panel2 = "http://localhost:5000/static/images/panel2.png";
+      this.panel3 = "http://localhost:5000/static/images/panel3.png";
+
+      let len = this.comic.length;
+      if (len > 0)
+      {
+        this.panel1 = this.getImageURLFor(this.comic[0]);
+
+        if(len > 1)
+        {
+          this.panel2 = this.getImageURLFor(this.comic[1]);
+
+          if(len > 2)
+            this.panel3 = this.getImageURLFor(this.comic[2]);
+        }
+      }
+    },
+    updateCurrentImage: function() {
+      if(this.curImageIdx >= this.unusedImages.length)
+      {
+        this.curImageIdx = this.unusedImages.length - 1;
+      }
+      else if(this.curImageIdx < 0)
+      {
+        this.curImageIdx = 0;
+      }
+
+      this.curImage = this.getImageURLFor(this.unusedImages[this.curImageIdx]);
+    },
+    getImageURLFor: function(id) {
+      return document.location.origin + "/image/" + id;
+    },
+    removeComicAt: function(idx)
+    {
+      if(this.comic.length > idx)
+      {
+        this.comic.splice(idx, 1);
+      }
     }
   },
   template: `<div>
               <div class="panel-gallery">
-                <div><a href="javascript:void(0);" v-on:onclick="prevPanel" v-bind:class="{invisible: curImageIdx<=0}">
+                <div><a href="javascript:void(0);" v-on:click="prevPanel" v-bind:class="{invisible: curImageIdx<=0}">
                   <img src="static/images/prev.png" width=36px/>
                 </a></div>
-                <div><a href="javascript:void(0);" v-on:onclick="addCurPanel">
+                <div><a href="javascript:void(0);" v-on:click="addCurPanel">
                   <img v-bind:src="curImage" style="width:100%;"/>
                 </a></div>
-                <div><a href="javascript:void(0);" v-on:onclick="nextPanel" v-bind:class="{invisible: curImageIdx>=unusedImages.length-1}">
+                <div><a href="javascript:void(0);" v-on:click="nextPanel" v-bind:class="{invisible: curImageIdx>=unusedImages.length-1}">
                   <img src="static/images/next.png" width=36px />
                 </a></div>
               </div>
               <div class="row">
                 <div class="col-md-4 col-sm-4 col-xs-4 col-4">
-                  <img v-bind:src="panel1" width="98%"/>
+                  <a href="javascript:void(0);" v-on:click="removeComicAt(0)">
+                    <img v-bind:src="panel1" width="98%"/>
+                  </a>
                 </div>
                 <div class="col-md-4 col-sm-4 col-xs-4 col-4">
-                  <img v-bind:src="panel2" width="98%"/>
+                  <a href="javascript:void(0);" v-on:click="removeComicAt(1)">
+                    <img v-bind:src="panel2" width="98%"/>
+                  </a>
                 </div>
                 <div class="col-md-4 col-sm-4 col-xs-4 col-4">
-                  <img v-bind:src="panel3" width="98%"/>
+                  <a href="javascript:void(0);" v-on:click="removeComicAt(2)">
+                    <img v-bind:src="panel3" width="98%"/>
+                  </a>
                 </div>
-                <a  href="javascript:void(0);" v-on:onclick="submit"><button type="button" class="btn btn-primary">Done</button></a>
+                <a  href="javascript:void(0);" v-on:click="submit" v-if="comic.length == 3"><button type="button" class="btn btn-primary">Done</button></a>
               </div>
             </div>`
 });

@@ -6,6 +6,10 @@ from database import *
 from imagestore import *
 import jwt
 import settings
+from PIL import Image
+import base64
+import cStringIO
+import io
 
 import time
 from threading import Timer
@@ -20,7 +24,7 @@ class GameState:
     RATING = 5 # Quick fire rating strips off against eachother
     SCOREBOARD = 6 # Game is over, display scoreboard. The game remains in this state forevermore
 
-DRAW_TIME = 60 * 1.5
+DRAW_TIME = 60 * 3.5
 GRACE_PERIOD = 10
 CREATE_TIME = 60 * 3.5
 
@@ -52,13 +56,68 @@ def game():
 @app.route('/image/<image_id>', methods = ['GET'])
 def get_image(image_id):
     if db.image_exists(image_id):
-        res = make_response(imagestore.get_image(image_id));
+        data = imagestore.get_image(image_id)
+        res = make_response(data);
+        if data is None:
+            res.status = 500;
         res.headers.set("content-type", "image/png");
     else:
         res = make_response(jsonify({"error": "Image not found"}));
         res.status_code = 404;
 
     return res;
+
+
+# Get the panels assigned to this user
+@app.route('/api/game/<game_id>/assignments', methods = ["GET"])
+def get_assignments(game_id):
+    request_data = parse_request_data();
+
+    assignments = db.get_assignments_for(game_id, request_data["user_id"]);
+
+    if assignments is None:
+        res =  make_response(jsonify({"error": "No assignments found"}));
+        res.status = 404;
+        return res;
+
+    return make_response(jsonify({"assignments": assignments}));
+
+def make_comic(comic):
+    combined = Image.open('template.png');
+
+    for i in range(0, 3):
+        data = imagestore.get_image(comic[i]);
+
+        if data is None:
+            continue;
+
+        im = Image.open(io.BytesIO(data));
+        combined.paste(im, ((i*1150) + 60,60));
+
+    buffer = cStringIO.StringIO()
+    combined.save(buffer, format="PNG")
+    return base64.b64encode(buffer.getvalue());
+
+# Get the panels assigned to this user
+@app.route('/api/game/<game_id>/comics', methods = ["POST"])
+def post_comic(game_id):
+    if request.json is None or "comic" not in request.json:
+        res = make_response({"error": "Invalid parameters: Parameter must be a valid JSON object"});
+        res.status = 400;
+        return res;
+
+    request_data = parse_request_data();
+
+    # Find all three images for this comic and combine them server-side
+    comic = request.json["comic"];
+    data = make_comic(comic);
+
+    iid = db.add_comic_to_game(game_id, request_data["user_id"], comic);
+    imagestore.store_image(iid, data);
+
+    return jsonify({"success": True, "image_id": iid});
+
+
 
 @app.route('/api/game', methods = ["POST"])
 def create_game():
@@ -167,7 +226,8 @@ def start_create_state(game_id):
                     j = i % len(backup_panels);
                     assignments[players[player_idx]["id"]].append(backup_panels[j]);
 
-        print(assignments);
+
+        db.store_assignments(game_id, assignments);
 
         end_time = int(time.time() + CREATE_TIME);
 

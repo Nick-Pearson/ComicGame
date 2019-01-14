@@ -15,8 +15,12 @@
     </div>
 
     <div class="game-content">
-      <div v-if="gameInfo.state == GameState.STARTING">
+      <div v-if="waitingForPlayers">
+          <h2>Waiting for other players</h2>
+      </div>
+      <div v-else-if="gameInfo.state == GameState.STARTING">
         <h2>Waiting for players to join</h2>
+        <p>Visit www.comicgame.co.uk on your phone and enter the room code in the top right to join this game</p>
 
         <player-entry
           v-for="player in gameInfo.players"
@@ -25,29 +29,37 @@
           v-bind:key="player.id"></player-entry>
 
         <a v-if="gameInfo.is_host && gameInfo.players.length > 1" href="javascript:void(0);" onclick="StartGameClicked();"><button type="button" class="btn btn-primary btn-large">Start Game</button></a>
+        <p v-if="gameInfo.is_host && gameInfo.players.length < 2">You need at least 2 players to start a game</p>
       </div>
-      <div v-if="gameInfo.state == GameState.DRAWING">
+      <div v-else-if="gameInfo.state == GameState.DRAWING">
         <div v-if="gameInfo.is_host || gameInfo.is_spectator">
-          <h2>Draw some panels!</h2>
+          <h2>Use your phone to draw comic strip panels!</h2>
           <countdown-clock v-bind:end_time="gameInfo.round_end"></countdown-clock>
+
+          <p>Example:</p>
         </div>
         <div v-else>
           <panel-creator></panel-creator>
         </div>
       </div>
-      <div v-if="gameInfo.state == GameState.DISTRIBUTING">
+      <div v-else-if="gameInfo.state == GameState.DISTRIBUTING">
         <h2>Great work!</h2>
         <p>Now let's see what you can make with those panels</p>
       </div>
-      <div v-if="gameInfo.state == GameState.CREATING">
-        <div v-if="!gameInfo.is_host || gameInfo.is_spectator">
-          <h2>Make some comics!</h2>
+      <div v-else-if="gameInfo.state == GameState.CREATING">
+        <div v-if="gameInfo.is_host || gameInfo.is_spectator">
+          <h2>Make some comics out of the panels on your screen!</h2>
+          <p>We've even thrown in some of our own</p>
           <countdown-clock v-bind:end_time="gameInfo.round_end"></countdown-clock>
         </div>
         <div v-else>
           <h2>Select 3 panels and use them to make a comic:</h2>
           <strip-creator></strip-creator>
         </div>
+      </div>
+      <div v-else-if="gameInfo.state == GameState.GATHERING">
+        <h2>Comics complete!</h2>
+        <p>It's finally time to find out which of these comics is the best...</p>
       </div>
     </div>
 

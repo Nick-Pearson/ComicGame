@@ -26,7 +26,7 @@ class MemoryDatabase(DatabaseBase):
         return False;
 
     def add_game_record(this, game_id, host_user):
-        this.__games[game_id] = {"host": host_user, "state":0, "players":[], "panels":[], "round_end": 0, "create_time": int(time.time())};
+        this.__games[game_id] = {"host": host_user, "state":0, "players":[], "panels":[], "comics":[], "round_end": 0, "create_time": int(time.time()), "assignments": {}};
 
     def query_game_for_user(this, game_id, user_id):
         if game_id not in this.__games:
@@ -141,3 +141,29 @@ class MemoryDatabase(DatabaseBase):
                 count = count + 1;
 
         return out;
+
+    def get_assignments_for(this, game_id, user_id):
+        if game_id not in this.__games:
+            return None;
+
+        assignments = this.__games[game_id]["assignments"];
+
+        if user_id not in assignments:
+            return None;
+
+        return assignments[user_id];
+
+    def store_assignments(this, game_id, assignments):
+        if game_id not in this.__games:
+            return;
+
+        this.__games[game_id]["assignments"] = assignments;
+
+
+    def add_comic_to_game(this, game_id, user_id, comic):
+        if game_id not in this.__games:
+            return None
+
+        iid = this.create_image(user_id, 1, game_id);
+        this.__games[game_id]["comics"].append({"id": iid, "created_by": user_id, "panels": comic});
+        return iid;

@@ -94,12 +94,12 @@ class TestDatabase(unittest.TestCase):
         this.assertEqual(len(record["players"]), 0);
 
         # test player is added only once
-        for i in range(0,1):
-            this.assertTrue(this.db.add_user_to_game(gid, player, "Nick"));
+        for i in range(0,2):
+            this.assertTrue(this.db.add_user_to_game(gid, player, "Nick" + str(i)));
             record = this.db.query_game_for_user(gid, player);
             this.assertTrue(record != None);
             this.assertEqual(len(record["players"]), 1);
-            this.assertEqual(record["players"][0]["name"], "Nick");
+            this.assertEqual(record["players"][0]["name"], "Nick0");
             this.assertEqual(record["players"][0]["id"], player);
             this.assertFalse(record["is_host"]);
             this.assertFalse(record["is_spectator"]);
@@ -148,6 +148,39 @@ class TestDatabase(unittest.TestCase):
                 limit = 2;
 
             this.assertEqual(len(panels), limit);
+
+    def test_assignments(this):
+        uid = this.db.create_user('127.0.0.17');
+        gid = this.db.create_game(uid);
+
+        player_one = "jd92";
+        a_one = ["0", "1", "2"];
+        player_two = "01s0";
+        a_two = ["3", "4", "5"];
+
+        assignments = {player_one: a_one, player_two: a_two};
+        this.db.store_assignments(gid, assignments);
+
+        res = this.db.get_assignments_for(gid, player_one);
+        this.assertEqual(len(res), len(a_one));
+        for i in a_one:
+            this.assertTrue(True if i in res else False);
+
+        res = this.db.get_assignments_for(gid, player_two);
+        this.assertEqual(len(res), len(a_two));
+        for i in a_two:
+            this.assertTrue(True if i in res else False);
+
+    def test_comics(this):
+        uid = this.db.create_user('127.0.0.18');
+        gid = this.db.create_game(uid);
+
+        comic = ["1", "2", "3"];
+        iid = this.db.add_comic_to_game(gid, uid, comic);
+
+        this.assertTrue(iid != None);
+
+
 
 class TestImageStore(unittest.TestCase):
     def setUp(this):

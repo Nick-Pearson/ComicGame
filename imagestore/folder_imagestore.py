@@ -12,12 +12,9 @@ class FolderImageStore(ImageStoreBase):
         path = this.folder + "/" + image_id + ".png";
 
         try:
-            fd = open(path, 'r');
+            fd = open(path, 'rb');
         except IOError as e:
-            if e.errno == errno.EACCES:
-                return None
-            else:
-                raise
+            return None
         else:
             with fd:
                 return fd.read()
