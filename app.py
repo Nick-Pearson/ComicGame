@@ -298,7 +298,8 @@ def auto_create_comics(game_id):
     players = record["players"];
 
     for comic in comics:
-        players.remove(comic["by"]);
+        if comic["by"] in players:
+            players.remove(comic["by"]);
 
     for player in players:
         assignments = db.get_assignments_for(game_id, player["id"]);

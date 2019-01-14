@@ -192,7 +192,7 @@ class TestDatabase(unittest.TestCase):
         uid = this.db.create_user('127.0.0.18');
         gid = this.db.create_game(uid);
 
-        this.assertTrue(this.db.get_vote_info(" ") == None);
+        this.assertTrue(this.db.get_vote_info("aaaaaaaaaaaaaaaaaaaaaaaa") == None);
 
         record = this.db.query_game_for_user(gid, uid);
         this.assertTrue(record != None);

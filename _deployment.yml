@@ -22,6 +22,11 @@ spec:
       - name: comicgame
         image: nickpearson/comicgame:latest
         imagePullPolicy: "Always"
+        resources:
+          requests:
+            cpu: 200m
+          limits:
+            cpu: 500m
         ports:
         - name: web
           containerPort: 80
@@ -78,7 +83,7 @@ spec:
     name: comicgame
   minReplicas: 1
   maxReplicas: 10
-  targetCPUUtilizationPercentage: 70
+  targetCPUUtilizationPercentage: 50
 ---
 # MONGO DB STUFFS
 apiVersion: v1
@@ -112,6 +117,11 @@ spec:
       containers:
       - name: database
         image: mongo
+        resources:
+          requests:
+            cpu: 200m
+          limits:
+            cpu: 500m
         command:
           - mongod
           - "--bind_ip_all"
@@ -126,6 +136,11 @@ spec:
           mountPath: /data/db
       - name: mongo-sidecar
         image: cvallance/mongo-k8s-sidecar
+        resources:
+          requests:
+            cpu: 50m
+          limits:
+            cpu: 250m
         env:
           - name: MONGO_SIDECAR_POD_LABELS
             value: "role=db,environment=comicgame"
@@ -141,3 +156,17 @@ spec:
       resources:
         requests:
           storage: 40Gi
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: database-autoscaler
+  namespace: comicgame-ns
+spec:
+  scaleTargetRef:
+   apiVersion: apps/v1
+   kind: StatefulSet
+   name: database-ss
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 50
