@@ -24,7 +24,7 @@ class GameState:
     RATING = 5 # Quick fire rating strips off against eachother
     SCOREBOARD = 6 # Game is over, display scoreboard. The game remains in this state forevermore
 
-DRAW_TIME = 60 * 1
+DRAW_TIME = 60 * 3.5
 GRACE_PERIOD = 10
 CREATE_TIME = 60 * 1
 
