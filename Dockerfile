@@ -14,6 +14,7 @@ ADD templates /templates
 ADD app.py /
 ADD settings.py /
 ADD .env /
+ADD template.png /
 ADD key.pem /root/.oci/oci_api_key.pem
 
 EXPOSE 80
